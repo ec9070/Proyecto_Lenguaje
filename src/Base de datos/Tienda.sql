@@ -1,3 +1,6 @@
+--USER:TIENDA
+
+--Crear las tablas
 create table Cliente(
 id_cliente varchar(9) not null,
 nombre varchar(50) not null,
@@ -7,54 +10,21 @@ telefono varchar(50) not null,
 id_credito int,
 primary key(id_cliente));
 
-create table Credito(
-id_credito int not null,
-id_cliente varchar(9) not null,
-limite int not null,
-primary key(id_credito),
-foreign key(id_cliente) references Cliente(id_cliente));
+/************************************************* COMIENZA PAQUETE CLIENTES *****************************************/
 
-create table puesto(
-id_puesto int not null,
-nombre_puesto varchar(50) not null,
-min_salario int not null,
-max_salario int not null,
-primary key(id_puesto));
-
-create table provincia(
-id_provincia int not null,
-nombre varchar(50) not null,
-primary key(id_provincia));
-
-insert into provincia values (1,'San Jose');
-insert into provincia values (2,'Alajuela');
-insert into provincia values (3,'Heredia');
-insert into provincia values (4,'Cartago');
-insert into provincia values (5,'Guanacaste');
-insert into provincia values (6,'Puntarenas');
-insert into provincia values (7,'Limon');
-
-create table sucursal(
-id_sucursal int not null,
-nombre_sucursal varchar(50) not null,
-direccion varchar(100) not null,
-telefono varchar(50) not null,
-cant_empleados int not null,
-id_provincia int not null,
-primary key(id_sucursal),
-foreign key(id_provincia) references provincia(id_provincia));
-
-
-drop table puesto;
-
-select * from Cliente;
-
-drop table Cliente;
-
-drop table Credito;
-
-create or replace function repetido(id_c in Cliente.id_cliente%type) return number 
+create or replace package paquete_clientes
 as
+function repetido(id_c in Cliente.id_cliente%type) return number; 
+procedure insertar_cliente(id_c Cliente.id_cliente%type,nombre_c Cliente.nombre%type,apellidos_c Cliente.apellidos%type,
+correo_c Cliente.correo%type,telefono_c Cliente.telefono%type);
+procedure actualizar_cliente(id_c Cliente.id_cliente%type,nombre_c Cliente.nombre%type,apellidos_c Cliente.apellidos%type,correo_c Cliente.correo%type,
+telefono_c Cliente.telefono%type);
+end;
+
+create or replace package body paquete_clientes
+as
+function repetido(id_c in Cliente.id_cliente%type) return number 
+is
 existe int;
 id_c2 Cliente.id_cliente%type;
 begin
@@ -67,8 +37,33 @@ begin
     WHEN  NO_DATA_FOUND THEN
           existe:=0;
           return existe;
-end;
+end repetido;
 
+procedure insertar_cliente(id_c Cliente.id_cliente%type,nombre_c Cliente.nombre%type,apellidos_c Cliente.apellidos%type,
+correo_c Cliente.correo%type,telefono_c Cliente.telefono%type)
+is
+begin
+    insert into cliente(id_cliente,nombre,apellidos,correo,telefono,id_credito) 
+    values(id_c,nombre_c,apellidos_c,correo_c,telefono_c,0);
+    commit;
+end insertar_cliente;
+
+procedure actualizar_cliente(id_c Cliente.id_cliente%type,nombre_c Cliente.nombre%type,apellidos_c Cliente.apellidos%type,correo_c Cliente.correo%type,
+telefono_c Cliente.telefono%type)
+is
+begin
+    update Cliente
+    set nombre=nombre_c,apellidos=apellidos_c,correo=correo_c,telefono=telefono_c
+    where id_cliente=id_c;
+    commit;
+end actualizar_cliente;
+
+end paquete_clientes;
+/************************************************* FIN DE PAQUETE CLIENTES *****************************************/
+
+
+
+/************************************************* No funciona de momento*****************************************/
 insert into Cliente 
 values('117990404','Emanuel','Castro Arrieta','ec9070@gmail.com','85217368',0);
 
@@ -143,11 +138,44 @@ select * from puesto;
 drop table sucursal;
 
 
+insert into provincia values (1,'San Jose');
+insert into provincia values (2,'Alajuela');
+insert into provincia values (3,'Heredia');
+insert into provincia values (4,'Cartago');
+insert into provincia values (5,'Guanacaste');
+insert into provincia values (6,'Puntarenas');
+insert into provincia values (7,'Limon');
+
+create table Credito(
+id_credito int not null,
+id_cliente varchar(9) not null,
+limite int not null,
+primary key(id_credito),
+foreign key(id_cliente) references Cliente(id_cliente));
+
+create table Puesto(
+id_puesto int not null,
+nombre_puesto varchar(50) not null,
+min_salario int not null,
+max_salario int not null,
+primary key(id_puesto));
+
+create table Provincia(
+id_provincia int not null,
+nombre varchar(50) not null,
+primary key(id_provincia));
+
+create table sucursal(
+id_sucursal int not null,
+nombre_sucursal varchar(50) not null,
+direccion varchar(100) not null,
+telefono varchar(50) not null,
+cant_empleados int not null,
+id_provincia int not null,
+primary key(id_sucursal),
+foreign key(id_provincia) references provincia(id_provincia));
 
 
 
 
-
-
-
-
+execute paquete_clientes.insertar_cliente('117990404','Emanuel','Castro Arrieta','ec9070@gmail.com','85217368')

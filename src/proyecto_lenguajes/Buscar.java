@@ -35,7 +35,7 @@ public class Buscar extends javax.swing.JFrame {
         try {
             conectar();
             Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("select repetido('"+id+"') from dual");
+            ResultSet rs = st.executeQuery("select paquete_clientes.repetido('"+id+"') from dual");
             while (rs.next()) {
                 aux = rs.getInt(1);
             }

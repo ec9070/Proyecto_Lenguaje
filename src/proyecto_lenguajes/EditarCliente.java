@@ -36,7 +36,7 @@ public class EditarCliente extends javax.swing.JFrame {
         try {
             conectar();
             Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("select repetido('" + id + "') from dual");
+            ResultSet rs = st.executeQuery("select paquete_clientes.repetido('" + id + "') from dual");
             while (rs.next()) {
                 aux = rs.getInt(1);
             }
@@ -110,13 +110,15 @@ public class EditarCliente extends javax.swing.JFrame {
     public void actualizar() {
         try {
             conectar();
-            Statement st = con.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
-                    ResultSet.CONCUR_UPDATABLE);
-            st.executeUpdate("update Cliente"+" set nombre='"+c.getNombre()+"',apellidos='"+c.getApellido()+"',correo='"+c.getCorreo()+"',telefono='"+c.getTelefono()
-                    +"' where id_cliente='"+c.getId_cliente()+"'");
-            st.executeQuery("commit");
+            CallableStatement cst = con.prepareCall("{call paquete_clientes.actualizar_cliente(?,?,?,?,?)}");
+            cst.setString(1, c.getId_cliente());
+            cst.setString(2, c.getNombre());
+            cst.setString(3, c.getApellido());
+            cst.setString(4, c.getCorreo());
+            cst.setString(5, c.getTelefono());
+            cst.execute();
             con.close();
-        }catch (SQLException ex) {
+        } catch (SQLException ex) {
             Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -281,7 +283,7 @@ public class EditarCliente extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        if(editar()){
+        if (editar()) {
             this.dispose();
         }
     }//GEN-LAST:event_jButton2ActionPerformed

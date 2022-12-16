@@ -17,20 +17,20 @@ public class RegistrarCliente extends javax.swing.JFrame {
     public boolean resgistro() {
         Cliente c = new Cliente();
         String id;
-        if ((jTextField2.getText().equals("")) || (jTextField5.getText().equals(""))||(jTextField3.getText().equals(""))
+        if ((jTextField2.getText().equals("")) || (jTextField5.getText().equals("")) || (jTextField3.getText().equals(""))
                 || (jTextField4.getText().equals("")) || (jTextField1.getText().equals(""))) {
             JOptionPane.showMessageDialog(null, "¡Todos los campos deben estar llenos!");
             return false;
         }
-        id=jTextField2.getText();
-        if(!(id.length()==9)){
+        id = jTextField2.getText();
+        if (!(id.length() == 9)) {
             JOptionPane.showMessageDialog(null, "La cedula debe ser de 9 digitos");
             return false;
-        }else if((!jTextField4.getText().contains("@"))||(!jTextField4.getText().contains("."))){
+        } else if ((!jTextField4.getText().contains("@")) || (!jTextField4.getText().contains("."))) {
             JOptionPane.showMessageDialog(null, "El correo tiene un formato no valido");
             return false;
         }
-        if(!existe(id)){
+        if (!existe(id)) {
             c.setId_cliente(id);
             c.setNombre(jTextField5.getText());
             c.setApellido(jTextField3.getText());
@@ -39,10 +39,10 @@ public class RegistrarCliente extends javax.swing.JFrame {
             insertar(c);
             JOptionPane.showMessageDialog(null, "¡Insertado correctamente!");
             return true;
-        }else{
-            JOptionPane.showMessageDialog(null, "¡El cliente ya existe!"); 
+        } else {
+            JOptionPane.showMessageDialog(null, "¡El cliente ya existe!");
         }
-      return false;
+        return false;
     }
 
     public boolean existe(String id) {
@@ -50,7 +50,7 @@ public class RegistrarCliente extends javax.swing.JFrame {
         try {
             conectar();
             Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("select repetido('"+id+"') from dual");
+            ResultSet rs = st.executeQuery("select paquete_clientes.repetido('" + id + "') from dual");
             while (rs.next()) {
                 aux = rs.getInt(1);
             }
@@ -67,11 +67,13 @@ public class RegistrarCliente extends javax.swing.JFrame {
     public void insertar(Cliente c) {
         try {
             conectar();
-            Statement st = con.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
-                    ResultSet.CONCUR_UPDATABLE);
-            st.executeUpdate("insert into Cliente values('"+c.getId_cliente()+"','"+c.getNombre()+"','"+c.getApellido()+
-                    "','"+c.getCorreo()+"','"+c.getTelefono()+"',"+c.getId_credito()+")");
-            st.executeQuery("commit");
+            CallableStatement cst = con.prepareCall("{call paquete_clientes.insertar_cliente(?,?,?,?,?)}");
+            cst.setString(1, c.getId_cliente());
+            cst.setString(2, c.getNombre());
+            cst.setString(3, c.getApellido());
+            cst.setString(4, c.getCorreo());
+            cst.setString(5, c.getTelefono());
+            cst.execute();
             con.close();
         } catch (SQLException ex) {
             Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
