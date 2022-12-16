@@ -73,7 +73,6 @@ public class RegistrarCliente extends javax.swing.JFrame {
             cst.setString(3, c.getApellido());
             cst.setString(4, c.getCorreo());
             cst.setString(5, c.getTelefono());
-            cst.execute();
             con.close();
         } catch (SQLException ex) {
             Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);

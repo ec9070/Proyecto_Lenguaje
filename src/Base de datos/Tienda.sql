@@ -10,6 +10,46 @@ telefono varchar(50) not null,
 id_credito int,
 primary key(id_cliente));
 
+create table Credito(
+id_credito int not null,
+id_cliente varchar(9) not null,
+limite int not null,
+primary key(id_credito),
+foreign key(id_cliente) references Cliente(id_cliente));
+
+/************************************************* COMIENZAN SEQUENCIAS *****************************************/
+--Sequencia para la tabla credito
+create sequence creditos
+start with 1
+increment by 1;
+/************************************************* FIN SEQUENCIAS *****************************************/
+
+
+/************************************************* COMIENZAN TRIGGERS *****************************************/
+--Trigger que actualiza el cliente con el credito
+create or replace trigger ingresar_credito
+after insert on credito
+for each row
+begin
+    update Cliente
+    set id_credito=:new.id_credito
+    where id_cliente=:new.id_cliente;
+end;
+
+--Trigger que pone en 0 el id del credito cuando se elimina
+create or replace trigger eliminar_credito
+after delete on credito
+for each row
+begin
+    update Cliente
+    set id_credito=0
+    where id_cliente=:old.id_cliente;
+end;
+
+select * from cliente;
+/************************************************* FIN TRIGGERS *****************************************/
+
+
 /************************************************* COMIENZA PAQUETE CLIENTES *****************************************/
 
 create or replace package paquete_clientes
@@ -62,32 +102,42 @@ end paquete_clientes;
 /************************************************* FIN DE PAQUETE CLIENTES *****************************************/
 
 
+/************************************************* COMIENZA PAQUETE CREDITO *****************************************/
+
+create or replace package paquete_credito
+as
+procedure insertar_credito(id_c Cliente.id_cliente%type,limite_c Credito.limite%type);
+procedure buscar_credito(id_c in Cliente.id_cliente%type,id_cre out Credito.id_credito%type,limite_c out Credito.limite%type,
+nombre_c out Cliente.nombre%type,apellidos_c out Cliente.apellidos%type);
+end;
+
+create or replace package body paquete_credito
+as
+procedure insertar_credito(id_c Cliente.id_cliente%type,limite_c Credito.limite%type)
+is
+begin
+    insert into credito(id_credito,id_cliente,limite)
+    values(creditos.nextval,id_c,limite_c);
+    commit;
+end insertar_credito;
+
+procedure buscar_credito(id_c in Cliente.id_cliente%type,id_cre out Credito.id_credito%type,limite_c out Credito.limite%type,
+nombre_c out Cliente.nombre%type,apellidos_c out Cliente.apellidos%type)
+is 
+begin
+    select credito.id_credito,limite,nombre,apellidos into id_cre,limite_c,nombre_c,apellidos_c
+    from credito,cliente
+    where credito.id_cliente=id_c and credito.id_credito=cliente.id_credito;
+end buscar_credito;
+
+end paquete_credito;
+/************************************************* FIN DE PAQUETE CREDITO *****************************************/
+
+
+
+
 
 /************************************************* No funciona de momento*****************************************/
-insert into Cliente 
-values('117990404','Emanuel','Castro Arrieta','ec9070@gmail.com','85217368',0);
-
-insert into Credito 
-values(creditos.nextval,'1',700000);
-
-update Cliente
-set nombre='Emanuel',apellidos='Castro Arrieta',correo='ec9071@gmail.com',telefono='85217362'
-where id_cliente='117990404';
-
-delete 
-from Cliente
-where id_cliente='117990404';
-
-commit;
-
-create sequence creditos
-start with 1
-increment by 1;
-
-drop sequence creditos;
-
-select * from credito;
-
 
 create or replace function repetido_puesto(nombre in Puesto.nombre_puesto%type) return number 
 as
@@ -146,12 +196,7 @@ insert into provincia values (5,'Guanacaste');
 insert into provincia values (6,'Puntarenas');
 insert into provincia values (7,'Limon');
 
-create table Credito(
-id_credito int not null,
-id_cliente varchar(9) not null,
-limite int not null,
-primary key(id_credito),
-foreign key(id_cliente) references Cliente(id_cliente));
+
 
 create table Puesto(
 id_puesto int not null,
@@ -178,4 +223,4 @@ foreign key(id_provincia) references provincia(id_provincia));
 
 
 
-execute paquete_clientes.insertar_cliente('117990404','Emanuel','Castro Arrieta','ec9070@gmail.com','85217368')
+

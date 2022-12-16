@@ -37,7 +37,7 @@ public class Menu extends javax.swing.JFrame {
         try {
             conectar();
             Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("select repetido('" + id + "') from dual");
+            ResultSet rs = st.executeQuery("select paquete_clientes.repetido('" + id + "') from dual");
             while (rs.next()) {
                 aux = rs.getInt(1);
             }
@@ -83,24 +83,80 @@ public class Menu extends javax.swing.JFrame {
         if (!existe(id)) {
             JOptionPane.showMessageDialog(null, "¡El cliente no existe!");
         } else {
-            try {
-                conectar();
-                Statement st = con.createStatement();
-                ResultSet rs = st.executeQuery("select id_credito,limite,nombre,apellidos from credito,cliente where credito.id_cliente='" + id + "' "
-                        + "and credito.id_credito=cliente.id_credito");
-                while (rs.next()) {
-                    s = s + "Credito de " + rs.getString(3) + " " + rs.getString(4) + "\nId_credito: " + rs.getInt(1) + "\nLimite: " + rs.getInt(2);
-                }
-                con.close();
-            } catch (SQLException ex) {
-                Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            s = buscar(id);
         }
         if (!(s.equals(""))) {
             JOptionPane.showMessageDialog(null, s);
         } else {
             JOptionPane.showMessageDialog(null, "El cliente no tiene credito");
         }
+    }
+
+    public void eliminar_credito() {
+        String id;
+        int comprobante;
+        id = JOptionPane.showInputDialog(null, "Digite la cedula del cliente para eliminar el credito: ");
+        while (!(id.length() == 9)) {
+            id = JOptionPane.showInputDialog(null, "La cedula debe tener 9 digitos vuelva a ingresarla: ");
+        }
+        if (!existe(id)) {
+            JOptionPane.showMessageDialog(null, "¡El cliente no existe!");
+        } else {
+            comprobante = comprobar(id);
+            if (comprobante != 0) {
+                try {
+                    conectar();
+                    Statement st = con.createStatement();
+                    st.executeQuery("delete from credito where id_cliente='" + id + "'");
+                    st.executeQuery("commit");
+                    con.close();
+                    JOptionPane.showMessageDialog(null, "¡Credito eliminado!");
+                } catch (SQLException ex) {
+                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }else{
+                JOptionPane.showMessageDialog(null, "No tiene credito");
+            }
+        }
+    }
+
+    public int comprobar(String id) {
+        int comprobante = 0;
+        try {
+            conectar();
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery("select id_credito from Cliente where id_cliente='" + id + "'");
+            while (rs.next()) {
+                comprobante = rs.getInt(1);
+            }
+            con.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return comprobante;
+    }
+
+    public String buscar(String id) {
+        String s = "";
+        try {
+            conectar();
+            CallableStatement cst = con.prepareCall("{call paquete_credito.buscar_credito(?,?,?,?,?)}");
+            cst.setString(1, id);
+            cst.registerOutParameter(2, java.sql.Types.INTEGER);
+            cst.registerOutParameter(3, java.sql.Types.INTEGER);
+            cst.registerOutParameter(4, java.sql.Types.VARCHAR);
+            cst.registerOutParameter(5, java.sql.Types.VARCHAR);
+            cst.execute();
+            String nombre = cst.getString(4);
+            String apellidos = cst.getString(5);
+            int id_credito = cst.getInt(2);
+            int limite = cst.getInt(3);
+            s = s + "Credito de " + nombre + " " + apellidos + "\nId_credito: " + id_credito + "\nLimite: " + limite;
+            con.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return s;
     }
 
     @SuppressWarnings("unchecked")
@@ -117,6 +173,7 @@ public class Menu extends javax.swing.JFrame {
         jMenu3 = new javax.swing.JMenu();
         jMenuItem5 = new javax.swing.JMenuItem();
         jMenuItem6 = new javax.swing.JMenuItem();
+        jMenuItem11 = new javax.swing.JMenuItem();
         jMenu4 = new javax.swing.JMenu();
         jMenuItem7 = new javax.swing.JMenuItem();
         jMenuItem8 = new javax.swing.JMenuItem();
@@ -192,6 +249,15 @@ public class Menu extends javax.swing.JFrame {
             }
         });
         jMenu3.add(jMenuItem6);
+
+        jMenuItem11.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_L, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItem11.setText("Eliminar Credito");
+        jMenuItem11.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem11ActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jMenuItem11);
 
         jMenuBar1.add(jMenu3);
 
@@ -328,6 +394,10 @@ public class Menu extends javax.swing.JFrame {
         n.llenar();
     }//GEN-LAST:event_jMenuItem10ActionPerformed
 
+    private void jMenuItem11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem11ActionPerformed
+       eliminar_credito();
+    }//GEN-LAST:event_jMenuItem11ActionPerformed
+
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -369,6 +439,7 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem10;
+    private javax.swing.JMenuItem jMenuItem11;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;

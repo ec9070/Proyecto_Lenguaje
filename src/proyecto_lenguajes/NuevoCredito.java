@@ -1,6 +1,5 @@
 package proyecto_lenguajes;
 
-import Clases.Cliente;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.sql.*;
@@ -35,7 +34,7 @@ public class NuevoCredito extends javax.swing.JFrame {
         try {
             conectar();
             Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("select repetido('" + id + "') from dual");
+            ResultSet rs = st.executeQuery("select paquete_clientes.repetido('" + id + "') from dual");
             while (rs.next()) {
                 aux = rs.getInt(1);
             }
@@ -84,10 +83,10 @@ public class NuevoCredito extends javax.swing.JFrame {
     public void ingresar(String id, int limite) {
         try {
             conectar();
-            Statement st = con.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
-                    ResultSet.CONCUR_UPDATABLE);
-            st.executeUpdate("insert into Credito values(creditos.nextval,'" + id + "'," + limite + ")");
-            st.executeQuery("commit");
+            CallableStatement cst = con.prepareCall("{call paquete_credito.insertar_credito(?,?)}");
+            cst.setString(1,id);
+            cst.setInt(2,limite); 
+            cst.execute();
             con.close();
         } catch (SQLException ex) {
             Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
