@@ -36,7 +36,7 @@ public class EditarPuesto extends javax.swing.JFrame {
         int opcion;
         s = puestos();
         if (!(s.equals(""))) {
-            opcion = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de puesto que desea consultar: "));
+            opcion = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de puesto que desea editar: "));
             try {
                 conectar();
                 Statement st = con.createStatement();
@@ -109,10 +109,11 @@ public class EditarPuesto extends javax.swing.JFrame {
     public void actualizar() {
         try {
             conectar();
-            Statement st = con.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
-                    ResultSet.CONCUR_UPDATABLE);
-            st.executeUpdate("update Puesto set min_salario=" + p.getMin_salario() + ",max_salario=" + p.getMax_salario() + " where id_puesto=" + p.getId_puesto());
-            st.executeQuery("commit");
+            CallableStatement cst = con.prepareCall("{call paquete_puesto.actualizar_puesto(?,?,?)}");
+            cst.setInt(1, p.getId_puesto());
+            cst.setInt(2, p.getMin_salario());
+            cst.setInt(3, p.getMax_salario());
+            cst.execute();
             con.close();
         } catch (SQLException ex) {
             Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);

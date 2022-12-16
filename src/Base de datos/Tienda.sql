@@ -17,9 +17,21 @@ limite int not null,
 primary key(id_credito),
 foreign key(id_cliente) references Cliente(id_cliente));
 
+create table Puesto(
+id_puesto int not null,
+nombre_puesto varchar(50) not null,
+min_salario int not null,
+max_salario int not null,
+primary key(id_puesto));
+
 /************************************************* COMIENZAN SEQUENCIAS *****************************************/
 --Sequencia para la tabla credito
 create sequence creditos
+start with 1
+increment by 1;
+
+--Sequencia puestos
+create sequence puestos
 start with 1
 increment by 1;
 /************************************************* FIN SEQUENCIAS *****************************************/
@@ -102,6 +114,7 @@ end paquete_clientes;
 /************************************************* FIN DE PAQUETE CLIENTES *****************************************/
 
 
+
 /************************************************* COMIENZA PAQUETE CREDITO *****************************************/
 
 create or replace package paquete_credito
@@ -134,13 +147,19 @@ end paquete_credito;
 /************************************************* FIN DE PAQUETE CREDITO *****************************************/
 
 
+/************************************************* COMIENZA PAQUETE PUESTO *****************************************/
 
-
-
-/************************************************* No funciona de momento*****************************************/
-
-create or replace function repetido_puesto(nombre in Puesto.nombre_puesto%type) return number 
+create or replace package paquete_puesto
 as
+function repetido_puesto(nombre in Puesto.nombre_puesto%type) return number; 
+procedure insertar_puesto(nombre_p Puesto.nombre_puesto%type,min_salario_p Puesto.min_salario%type,max_salario_p Puesto.max_salario%type);
+procedure actualizar_puesto(id_p Puesto.id_puesto%type,min_salario_p Puesto.min_salario%type,max_salario_p Puesto.max_salario%type);
+end;
+
+create or replace package body paquete_puesto
+as
+function repetido_puesto(nombre in Puesto.nombre_puesto%type) return number
+is
 existe int;
 nombre_2 Puesto.nombre_puesto%type;
 begin
@@ -153,13 +172,33 @@ begin
     WHEN  NO_DATA_FOUND THEN
           existe:=0;
           return existe;
-end;
+end repetido_puesto;
 
-create sequence puestos
-start with 1
-increment by 1;
+procedure insertar_puesto(nombre_p Puesto.nombre_puesto%type,min_salario_p Puesto.min_salario%type,max_salario_p Puesto.max_salario%type)
+is
+begin
+    insert into puesto(id_puesto,nombre_puesto,min_salario,max_salario)
+    values(puestos.nextval,nombre_p,min_salario_p,max_salario_p);
+    commit;
+end insertar_puesto;
 
-select * from puesto;
+procedure actualizar_puesto(id_p Puesto.id_puesto%type,min_salario_p Puesto.min_salario%type,max_salario_p Puesto.max_salario%type)
+is
+begin
+    update puesto
+    set min_salario=min_salario_p,max_salario=max_salario_p
+    where id_puesto=id_p;
+    commit;
+end actualizar_puesto;
+
+end paquete_puesto;
+
+/************************************************* FIN PAQUETE PUESTO *****************************************/
+
+
+
+
+/************************************************* No funciona de momento*****************************************/
 
 create or replace function repetido_sucursal(nombre1 in Sucursal.nombre_sucursal%type) return number 
 as
@@ -183,7 +222,6 @@ increment by 1;
 
 drop sequence sucursales;
 
-select * from puesto;
 
 drop table sucursal;
 
@@ -198,12 +236,7 @@ insert into provincia values (7,'Limon');
 
 
 
-create table Puesto(
-id_puesto int not null,
-nombre_puesto varchar(50) not null,
-min_salario int not null,
-max_salario int not null,
-primary key(id_puesto));
+
 
 create table Provincia(
 id_provincia int not null,

@@ -61,10 +61,11 @@ public class NuevoPuesto extends javax.swing.JFrame {
     public void insertar(Puesto p) {
         try {
             conectar();
-            Statement st = con.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
-                    ResultSet.CONCUR_UPDATABLE);
-            st.executeUpdate("insert into Puesto values(puestos.nextval,'" + p.getNombre_puesto() + "'," + p.getMin_salario() + "," + p.getMax_salario() + ")");
-            st.executeQuery("commit");
+            CallableStatement cst = con.prepareCall("{call paquete_puesto.insertar_puesto(?,?,?)}");
+            cst.setString(1,p.getNombre_puesto());
+            cst.setInt(2,p.getMin_salario());
+            cst.setInt(3,p.getMax_salario());
+            cst.execute();
             con.close();
         } catch (SQLException ex) {
             Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
@@ -76,7 +77,7 @@ public class NuevoPuesto extends javax.swing.JFrame {
         try {
             conectar();
             Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("select repetido_puesto('" + nombre + "') from dual");
+            ResultSet rs = st.executeQuery("select paquete_puesto.repetido_puesto('" + nombre + "') from dual");
             while (rs.next()) {
                 aux = rs.getInt(1);
             }
