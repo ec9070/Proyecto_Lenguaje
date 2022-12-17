@@ -33,27 +33,32 @@ public class NuevoPuesto extends javax.swing.JFrame {
     public boolean registrar() {
         Puesto p = new Puesto();
         String nombre;
-        if ((jTextField7.getText().equals("")) || (jTextField5.getText().equals("")) || (jTextField1.getText().equals(""))) {
-            JOptionPane.showMessageDialog(null, "¡Todos los campos deben estar llenos!");
+        try {
+            if ((jTextField7.getText().equals("")) || (jTextField5.getText().equals("")) || (jTextField1.getText().equals(""))) {
+                JOptionPane.showMessageDialog(null, "¡Todos los campos deben estar llenos!");
+                return false;
+            }
+            nombre = jTextField7.getText();
+            if (Integer.parseInt(jTextField5.getText()) < 350000) {
+                JOptionPane.showMessageDialog(null, "El salario minimo es de 350000");
+                return false;
+            } else if ((Integer.parseInt(jTextField1.getText())) < (Integer.parseInt(jTextField5.getText()))) {
+                JOptionPane.showMessageDialog(null, "El salario maximo debe ser mayor o igual minimo");
+                return false;
+            }
+            if (!(existe(nombre))) {
+                p.setNombre_puesto(nombre);
+                p.setMin_salario(Integer.parseInt(jTextField5.getText()));
+                p.setMax_salario(Integer.parseInt(jTextField1.getText()));
+                insertar(p);
+                JOptionPane.showMessageDialog(null, "¡Insertado correctamente!");
+                return true;
+            } else {
+                JOptionPane.showMessageDialog(null, "¡El puesto ya existe!");
+            }
+        }catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(null, "Formato no valido");
             return false;
-        }
-        nombre = jTextField7.getText();
-        if (Integer.parseInt(jTextField5.getText()) < 350000) {
-            JOptionPane.showMessageDialog(null, "El salario minimo es de 350000");
-            return false;
-        } else if ((Integer.parseInt(jTextField1.getText())) < (Integer.parseInt(jTextField5.getText()))) {
-            JOptionPane.showMessageDialog(null, "El salario maximo debe ser mayor o igual minimo");
-            return false;
-        }
-        if (!(existe(nombre))) {
-            p.setNombre_puesto(nombre);
-            p.setMin_salario(Integer.parseInt(jTextField5.getText()));
-            p.setMax_salario(Integer.parseInt(jTextField1.getText()));
-            insertar(p);
-            JOptionPane.showMessageDialog(null, "¡Insertado correctamente!");
-            return true;
-        } else {
-            JOptionPane.showMessageDialog(null, "¡El puesto ya existe!");
         }
         return false;
     }
@@ -62,9 +67,9 @@ public class NuevoPuesto extends javax.swing.JFrame {
         try {
             conectar();
             CallableStatement cst = con.prepareCall("{call paquete_puesto.insertar_puesto(?,?,?)}");
-            cst.setString(1,p.getNombre_puesto());
-            cst.setInt(2,p.getMin_salario());
-            cst.setInt(3,p.getMax_salario());
+            cst.setString(1, p.getNombre_puesto());
+            cst.setInt(2, p.getMin_salario());
+            cst.setInt(3, p.getMax_salario());
             cst.execute();
             con.close();
         } catch (SQLException ex) {

@@ -53,19 +53,23 @@ public class EditarCliente extends javax.swing.JFrame {
     public void datos() {
         String id;
         id = JOptionPane.showInputDialog(null, "Digite el id del cliente que desea editar: ");
-        while (!(id.length() == 9)) {
-            id = JOptionPane.showInputDialog(null, "La cedula debe tener 9 digitos vuelva a ingresarla: ");
-        }
-        if (!existe(id)) {
-            JOptionPane.showMessageDialog(null, "¡El cliente no existe!");
+        try {
+            while (!(id.length() == 9)) {
+                id = JOptionPane.showInputDialog(null, "La cedula debe tener 9 digitos vuelva a ingresarla: ");
+            }
+            if (!existe(id)) {
+                JOptionPane.showMessageDialog(null, "¡El cliente no existe!");
+                this.dispose();
+            } else {
+                llenar(id);
+                jTextField7.setText(c.getNombre());
+                jTextField5.setText(c.getApellido());
+                jTextField1.setText(c.getCorreo());
+                jTextField2.setText(c.getTelefono());
+            }
+        }catch(NullPointerException ex){
             this.dispose();
-        } else {
-            llenar(id);
-            jTextField7.setText(c.getNombre());
-            jTextField5.setText(c.getApellido());
-            jTextField1.setText(c.getCorreo());
-            jTextField2.setText(c.getTelefono());
-        }
+        } 
     }
 
     public void llenar(String id) {

@@ -1,4 +1,3 @@
-
 package proyecto_lenguajes;
 
 import Clases.Cliente;
@@ -9,11 +8,12 @@ import javax.swing.JOptionPane;
 
 public class Buscar extends javax.swing.JFrame {
 
-   private static Connection con = null;
+    private static Connection con = null;
+
     public Buscar() {
         initComponents();
     }
-    
+
     public void conectar() {
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
@@ -29,13 +29,13 @@ public class Buscar extends javax.swing.JFrame {
             Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public boolean existe(String id) {
         int aux = 0;
         try {
             conectar();
             Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("select paquete_clientes.repetido('"+id+"') from dual");
+            ResultSet rs = st.executeQuery("select paquete_clientes.repetido('" + id + "') from dual");
             while (rs.next()) {
                 aux = rs.getInt(1);
             }
@@ -48,34 +48,38 @@ public class Buscar extends javax.swing.JFrame {
         }
         return false;
     }
-    
-    public void buscar(){
+
+    public void buscar() {
         String id;
         Cliente c;
         id = JOptionPane.showInputDialog(null, "Digite el id del cliente que desea buscar: ");
-        while (!(id.length() == 9)) {
-            id = JOptionPane.showInputDialog(null, "La cedula debe tener 9 digitos vuelva a ingresarla: ");
-        }
-        if (!existe(id)) {
-            JOptionPane.showMessageDialog(null, "¡El cliente no existe!");
+        try {
+            while (!(id.length() == 9)) {
+                id = JOptionPane.showInputDialog(null, "La cedula debe tener 9 digitos vuelva a ingresarla: ");
+            }
+            if (!existe(id)) {
+                JOptionPane.showMessageDialog(null, "¡El cliente no existe!");
+                this.dispose();
+            } else {
+                c = llenar(id);
+                jTextField7.setText(c.getId_cliente());
+                jTextField5.setText(c.getNombre());
+                jTextField6.setText(c.getApellido());
+                jTextField9.setText(c.getCorreo());
+                jTextField8.setText(c.getTelefono());
+                jTextField7.setEditable(false);
+                jTextField5.setEditable(false);
+                jTextField6.setEditable(false);
+                jTextField9.setEditable(false);
+                jTextField8.setEditable(false);
+            }
+        }catch(NullPointerException ex){
             this.dispose();
-        }else{
-            c=llenar(id);
-            jTextField7.setText(c.getId_cliente());
-            jTextField5.setText(c.getNombre());
-            jTextField6.setText(c.getApellido());
-            jTextField9.setText(c.getCorreo());
-            jTextField8.setText(c.getTelefono());
-            jTextField7.setEditable(false);
-            jTextField5.setEditable(false);
-            jTextField6.setEditable(false);
-            jTextField9.setEditable(false);
-            jTextField8.setEditable(false);
-        }
+        } 
     }
-    
-    public Cliente llenar(String id){
-        Cliente c=new Cliente();
+
+    public Cliente llenar(String id) {
+        Cliente c = new Cliente();
         try {
             conectar();
             Statement st = con.createStatement();
@@ -94,7 +98,7 @@ public class Buscar extends javax.swing.JFrame {
         }
         return c;
     }
-    
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {

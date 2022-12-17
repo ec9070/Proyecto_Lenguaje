@@ -30,77 +30,26 @@ public class NuevaSucursal extends javax.swing.JFrame {
         }
     }
 
-    public boolean registrar() {
-        Sucursal s = new Sucursal();
-        String nombre;
-        String provincia;
-        if ((jTextField2.getText().equals("")) || (jTextField3.getText().equals(""))
-                || (jTextArea1.getText().equals(""))) {
-            JOptionPane.showMessageDialog(null, "¡Todos los campos deben estar llenos!");
-            return false;
-        }
-        nombre = jTextField2.getText();
-        if (!existe(nombre)) {
-            s.setNombre_sucursal(nombre);
-            s.setDireccion(jTextArea1.getText());
-            s.setTelefono(jTextField3.getText());
-            provincia = String.valueOf(jComboBox1.getSelectedItem());
-            JOptionPane.showMessageDialog(null, provincia);
-            switch (provincia) {
-                case "San Jose":
-                    s.setId_provincia(1);
-                    break;
-                case "Alajuela":
-                    s.setId_provincia(2);
-                    break;
-                case "Heredia":
-                    s.setId_provincia(3);
-                    break;
-                case "Cartago":
-                    s.setId_provincia(4);
-                    break;
-                case "Guanacaste":
-                    s.setId_provincia(5);
-                    break;
-                case "Puntarenas":
-                    s.setId_provincia(6);
-                    break;
-                case "Limon":
-                    s.setId_provincia(7);
-                    break;
-                default:
-                    break;
+    public void provincias() {
+        if (!existe_provincia()) {
+            try {
+                conectar();
+                CallableStatement cst = con.prepareCall("{call paquete_sucursal.insertar_provincias}");
+                cst.execute();
+                con.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
-            insertar(s);
-            JOptionPane.showMessageDialog(null, "¡Insertado correctamente!");
-            return true;
-        } else {
-            JOptionPane.showMessageDialog(null, "La sucursal ya existe");
         }
-        return false;
+        llenar();
     }
 
-    public void insertar(Sucursal s) {
-        try {
-            conectar();
-            Statement st = con.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
-                    ResultSet.CONCUR_UPDATABLE);
-            st.executeUpdate("insert into Sucursal values(sucursales.nextval,'" + s.getNombre_sucursal()
-                    + "','" + s.getDireccion() + "','" + s.getTelefono() + "'," + s.getCant_empleados() + "," + s.getId_provincia() + ")");
-            st.executeQuery("commit");
-            con.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public boolean existe(String nombre) {
+    public boolean existe_provincia() {
         int aux = 0;
         try {
             conectar();
             Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("select repetido_sucursal('" + nombre + "') from dual");
+            ResultSet rs = st.executeQuery("select paquete_sucursal.existe_provincia from dual");
             while (rs.next()) {
                 aux = rs.getInt(1);
             }
@@ -122,6 +71,64 @@ public class NuevaSucursal extends javax.swing.JFrame {
             while (rs.next()) {
                 jComboBox1.addItem(rs.getString(1));
             }
+        } catch (SQLException ex) {
+            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public boolean registrar() {
+        Sucursal s = new Sucursal();
+        String nombre;
+        String provincia;
+        if ((jTextField2.getText().equals("")) || (jTextField3.getText().equals(""))
+                || (jTextArea1.getText().equals(""))) {
+            JOptionPane.showMessageDialog(null, "¡Todos los campos deben estar llenos!");
+            return false;
+        }
+        nombre = jTextField2.getText();
+        if (!existe(nombre)) {
+            s.setNombre_sucursal(nombre);
+            s.setDireccion(jTextArea1.getText());
+            s.setTelefono(jTextField3.getText());
+            provincia = String.valueOf(jComboBox1.getSelectedItem());
+            insertar(s, provincia);
+            JOptionPane.showMessageDialog(null, "¡Insertado correctamente!");
+            return true;
+        } else {
+            JOptionPane.showMessageDialog(null, "La sucursal ya existe");
+        }
+        return false;
+    }
+
+    public boolean existe(String nombre) {
+        int aux = 0;
+        try {
+            conectar();
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery("select paquete_sucursal.repetido_sucursal('" + nombre + "') from dual");
+            while (rs.next()) {
+                aux = rs.getInt(1);
+            }
+            con.close();
+            if (aux == 1) {
+                return true;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public void insertar(Sucursal s, String provincia) {
+        try {
+            conectar();
+            CallableStatement cst = con.prepareCall("{call paquete_sucursal.insertar_sucursal(?,?,?,?)}");
+            cst.setString(1, s.getNombre_sucursal());
+            cst.setString(2, s.getDireccion());
+            cst.setString(3, s.getTelefono());
+            cst.setString(4, provincia);
+            cst.execute();
+            con.close();
         } catch (SQLException ex) {
             Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -266,13 +273,13 @@ public class NuevaSucursal extends javax.swing.JFrame {
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addGap(18, 18, 18)
-                                .addComponent(jLabel7)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jLabel7)
+                                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(18, 18, 18)
                                 .addComponent(jLabel8))
                             .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGap(26, 26, 26)
-                                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
+                                .addGap(66, 66, 66)
                                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addContainerGap(127, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()

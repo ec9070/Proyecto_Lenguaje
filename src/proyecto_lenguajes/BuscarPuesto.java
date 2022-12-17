@@ -37,30 +37,34 @@ public class BuscarPuesto extends javax.swing.JFrame {
         String s;
         int opcion;
         s = puestos();
-        if (!(s.equals(""))) {
-            opcion = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de puesto que desea consultar: "));
-            try {
-                conectar();
-                Statement st = con.createStatement();
-                ResultSet rs = st.executeQuery("select * from puesto where id_puesto=" + opcion);
-                while (rs.next()) {
-                    p.setId_puesto(rs.getInt(1));
-                    p.setNombre_puesto(rs.getString(2));
-                    p.setMin_salario(rs.getInt(3));
-                    p.setMax_salario(rs.getInt(4));
+        try {
+            if (!(s.equals(""))) {
+                opcion = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de puesto que desea consultar: "));
+                try {
+                    conectar();
+                    Statement st = con.createStatement();
+                    ResultSet rs = st.executeQuery("select * from puesto where id_puesto=" + opcion);
+                    while (rs.next()) {
+                        p.setId_puesto(rs.getInt(1));
+                        p.setNombre_puesto(rs.getString(2));
+                        p.setMin_salario(rs.getInt(3));
+                        p.setMax_salario(rs.getInt(4));
+                    }
+                    if (p.getId_puesto() == 0) {
+                        JOptionPane.showMessageDialog(null, "El puesto no existe");
+                        this.dispose();
+                    } else {
+                        llenar(p);
+                    }
+                    con.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                if (p.getId_puesto() == 0) {
-                    JOptionPane.showMessageDialog(null, "El puesto no existe");
-                    this.dispose();
-                } else {
-                    llenar(p);
-                }
-                con.close();
-            } catch (SQLException ex) {
-                Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+            } else {
+                JOptionPane.showMessageDialog(null, "No hay puestos");
             }
-        } else {
-            JOptionPane.showMessageDialog(null, "No hay puestos");
+        }catch (NumberFormatException ex) {
+            this.dispose();
         }
     }
 

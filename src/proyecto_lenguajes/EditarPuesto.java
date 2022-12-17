@@ -35,29 +35,34 @@ public class EditarPuesto extends javax.swing.JFrame {
         String s;
         int opcion;
         s = puestos();
-        if (!(s.equals(""))) {
-            opcion = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de puesto que desea editar: "));
-            try {
-                conectar();
-                Statement st = con.createStatement();
-                ResultSet rs = st.executeQuery("select * from puesto where id_puesto=" + opcion);
-                while (rs.next()) {
-                    p.setId_puesto(rs.getInt(1));
-                    p.setNombre_puesto(rs.getString(2));
-                    p.setMin_salario(rs.getInt(3));
-                    p.setMax_salario(rs.getInt(4));
+        try {
+            if (!(s.equals(""))) {
+                opcion = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de puesto que desea editar: "));
+                try {
+                    conectar();
+                    Statement st = con.createStatement();
+                    ResultSet rs = st.executeQuery("select * from puesto where id_puesto=" + opcion);
+                    while (rs.next()) {
+                        p.setId_puesto(rs.getInt(1));
+                        p.setNombre_puesto(rs.getString(2));
+                        p.setMin_salario(rs.getInt(3));
+                        p.setMax_salario(rs.getInt(4));
+                    }
+                    if (p.getId_puesto() == 0) {
+                        JOptionPane.showMessageDialog(null, "El puesto no existe");
+                        this.dispose();
+                    } else {
+                        llenar();
+                    }
+                } catch (SQLException ex) {
+                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                if (p.getId_puesto() == 0) {
-                    JOptionPane.showMessageDialog(null, "El puesto no existe");
-                    this.dispose();
-                } else {
-                    llenar();
-                }
-            } catch (SQLException ex) {
-                Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+            } else {
+                JOptionPane.showMessageDialog(null, "No hay puestos");
+                this.dispose();
             }
-        } else {
-            JOptionPane.showMessageDialog(null, "No hay puestos");
+        } catch (NumberFormatException ex) {
+            this.dispose();
         }
     }
 
@@ -87,22 +92,27 @@ public class EditarPuesto extends javax.swing.JFrame {
     }
 
     public boolean editar() {
-        if ((jTextField5.getText().equals("")) || (jTextField1.getText().equals(""))) {
-            JOptionPane.showMessageDialog(null, "¡Todos los campos deben estar llenos!");
+        try {
+            if ((jTextField5.getText().equals("")) || (jTextField1.getText().equals(""))) {
+                JOptionPane.showMessageDialog(null, "¡Todos los campos deben estar llenos!");
+                return false;
+            }
+            if (Integer.parseInt(jTextField5.getText()) < 350000) {
+                JOptionPane.showMessageDialog(null, "El salario minimo es de 350000");
+                return false;
+            } else if ((Integer.parseInt(jTextField1.getText())) < (Integer.parseInt(jTextField5.getText()))) {
+                JOptionPane.showMessageDialog(null, "El salario maximo debe ser mayor o igual minimo");
+                return false;
+            } else {
+                p.setMin_salario(Integer.parseInt(jTextField5.getText()));
+                p.setMax_salario(Integer.parseInt(jTextField1.getText()));
+                actualizar();
+                JOptionPane.showMessageDialog(null, "Puesto actualizado");
+                return true;
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(null, "Formato no valido");
             return false;
-        }
-        if (Integer.parseInt(jTextField5.getText()) < 350000) {
-            JOptionPane.showMessageDialog(null, "El salario minimo es de 350000");
-            return false;
-        } else if ((Integer.parseInt(jTextField1.getText())) < (Integer.parseInt(jTextField5.getText()))) {
-            JOptionPane.showMessageDialog(null, "El salario maximo debe ser mayor o igual minimo");
-            return false;
-        } else {
-            p.setMin_salario(Integer.parseInt(jTextField5.getText()));
-            p.setMax_salario(Integer.parseInt(jTextField1.getText()));
-            actualizar();
-            JOptionPane.showMessageDialog(null, "Puesto actualizado");
-            return true;
         }
     }
 

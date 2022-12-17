@@ -52,30 +52,35 @@ public class NuevoCredito extends javax.swing.JFrame {
         String id;
         int limite;
         int comprobante;
-        if ((jTextField6.getText().equals("") || (jTextField7.getText().equals("")))) {
-            JOptionPane.showMessageDialog(null, "¡Todos los campos deben estar llenos!");
-            return false;
-        }
-        id = jTextField6.getText();
-        if (!(id.length() == 9)) {
-            JOptionPane.showMessageDialog(null, "La cedula debe ser de 9 digitos");
-            return false;
-        } else if ((Integer.parseInt(jTextField7.getText()) < 10000) || (Integer.parseInt(jTextField7.getText()) > 1000000)) {
-            JOptionPane.showMessageDialog(null, "El credito debe ser mayor a 10000 y menor a 1000000");
-            return false;
-        }
-        if (existe(id)) {
-            comprobante = comprobar(id);
-            if (comprobante == 0) {
-                limite = Integer.parseInt(jTextField7.getText());
-                ingresar(id, limite);
-                JOptionPane.showMessageDialog(null, "Credito ingresado correctamente");
-                return true;
-            } else {
-                JOptionPane.showMessageDialog(null, "Ya tiene credito");
+        try {
+            if ((jTextField6.getText().equals("") || (jTextField7.getText().equals("")))) {
+                JOptionPane.showMessageDialog(null, "¡Todos los campos deben estar llenos!");
+                return false;
             }
-        } else {
-            JOptionPane.showMessageDialog(null, "¡El cliente no existe!");
+            id = jTextField6.getText();
+            if (!(id.length() == 9)) {
+                JOptionPane.showMessageDialog(null, "La cedula debe ser de 9 digitos");
+                return false;
+            } else if ((Integer.parseInt(jTextField7.getText()) < 10000) || (Integer.parseInt(jTextField7.getText()) > 1000000)) {
+                JOptionPane.showMessageDialog(null, "El credito debe ser mayor a 10000 y menor a 1000000");
+                return false;
+            }
+            if (existe(id)) {
+                comprobante = comprobar(id);
+                if (comprobante == 0) {
+                    limite = Integer.parseInt(jTextField7.getText());
+                    ingresar(id, limite);
+                    JOptionPane.showMessageDialog(null, "Credito ingresado correctamente");
+                    return true;
+                } else {
+                    JOptionPane.showMessageDialog(null, "Ya tiene credito");
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "¡El cliente no existe!");
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(null, "Formaro del limite no valido");
+            return false;
         }
         return false;
     }
@@ -84,8 +89,8 @@ public class NuevoCredito extends javax.swing.JFrame {
         try {
             conectar();
             CallableStatement cst = con.prepareCall("{call paquete_credito.insertar_credito(?,?)}");
-            cst.setString(1,id);
-            cst.setInt(2,limite); 
+            cst.setString(1, id);
+            cst.setInt(2, limite);
             cst.execute();
             con.close();
         } catch (SQLException ex) {

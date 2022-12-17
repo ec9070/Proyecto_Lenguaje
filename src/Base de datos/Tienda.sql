@@ -24,6 +24,22 @@ min_salario int not null,
 max_salario int not null,
 primary key(id_puesto));
 
+create table Provincia(
+id_provincia int not null,
+nombre varchar(50) not null,
+primary key(id_provincia));
+
+create table sucursal(
+id_sucursal int not null,
+nombre_sucursal varchar(50) not null,
+direccion varchar(100) not null,
+telefono varchar(50) not null,
+cant_empleados int not null,
+id_provincia int not null,
+primary key(id_sucursal),
+foreign key(id_provincia) references provincia(id_provincia));
+
+
 /************************************************* COMIENZAN SEQUENCIAS *****************************************/
 --Sequencia para la tabla credito
 create sequence creditos
@@ -32,6 +48,11 @@ increment by 1;
 
 --Sequencia puestos
 create sequence puestos
+start with 1
+increment by 1;
+
+--Sequencia sucursales
+create sequence sucursales
 start with 1
 increment by 1;
 /************************************************* FIN SEQUENCIAS *****************************************/
@@ -57,8 +78,6 @@ begin
     set id_credito=0
     where id_cliente=:old.id_cliente;
 end;
-
-select * from cliente;
 /************************************************* FIN TRIGGERS *****************************************/
 
 
@@ -196,12 +215,23 @@ end paquete_puesto;
 /************************************************* FIN PAQUETE PUESTO *****************************************/
 
 
+/************************************************* COMIENZA PAQUETE SUCURSAL *****************************************/
 
-
-/************************************************* No funciona de momento*****************************************/
-
-create or replace function repetido_sucursal(nombre1 in Sucursal.nombre_sucursal%type) return number 
+create or replace package paquete_sucursal
 as
+function repetido_sucursal(nombre1 in Sucursal.nombre_sucursal%type) return number;
+function existe_provincia return number;
+procedure insertar_provincias;
+procedure insertar_sucursal(nombre_s Sucursal.nombre_sucursal%type,direccion_s Sucursal.direccion%type,telefono_s Sucursal.telefono%type,
+provincia_s Provincia.nombre%type);
+function lista_sucursales return varchar;
+procedure actualizar_sucursal(id_s Sucursal.id_sucursal%type,nombre_s Sucursal.nombre_sucursal%type,direccion_s Sucursal.direccion%type,telefono_s Sucursal.telefono%type,provincia_s Provincia.nombre%type);
+end;
+
+create or replace package body paquete_sucursal
+as
+function repetido_sucursal(nombre1 in Sucursal.nombre_sucursal%type) return number
+is
 existe int;
 nombre_2 Sucursal.nombre_sucursal%type;
 begin
@@ -214,45 +244,105 @@ begin
     WHEN  NO_DATA_FOUND THEN
           existe:=0;
           return existe;
-end;
+end repetido_sucursal;
 
-create sequence sucursales
-start with 1
-increment by 1;
+function existe_provincia return number
+is
+existe int;
+id_p Provincia.id_provincia%type;
+begin
+    select id_provincia into id_p
+    from provincia
+    where id_provincia=1;
+    existe:=1;
+    return existe;
+    EXCEPTION
+    WHEN  NO_DATA_FOUND THEN
+          existe:=0;
+          return existe;
+end  existe_provincia;
 
-drop sequence sucursales;
+procedure insertar_provincias
+is
+begin
+    insert into provincia(id_provincia,nombre) 
+    values (1,'San Jose');
+    insert into provincia (id_provincia,nombre)
+    values (2,'Alajuela');
+    insert into provincia (id_provincia,nombre) 
+    values (3,'Heredia');
+    insert into provincia (id_provincia,nombre) 
+    values (4,'Cartago');
+    insert into provincia (id_provincia,nombre)
+    values (5,'Guanacaste');
+    insert into provincia (id_provincia,nombre) 
+    values (6,'Puntarenas');
+    insert into provincia (id_provincia,nombre) 
+    values (7,'Limon');
+    commit;
+end insertar_provincias;
 
+procedure insertar_sucursal(nombre_s Sucursal.nombre_sucursal%type,direccion_s Sucursal.direccion%type,telefono_s Sucursal.telefono%type,
+provincia_s Provincia.nombre%type)
+is
+id_provincia_p Sucursal.id_provincia%type;
+begin
+    case provincia_s
+        when 'San Jose' then id_provincia_p:=1;
+        when 'Alajuela' then id_provincia_p:=2;
+        when 'Heredia' then id_provincia_p:=3;
+        when 'Cartago' then id_provincia_p:=4;
+        when 'Guanacaste' then id_provincia_p:=5;
+        when 'Puntarenas' then id_provincia_p:=6;
+        when 'Limon' then id_provincia_p:=7;
+    end case;
+    insert into sucursal(id_sucursal,nombre_sucursal,direccion,telefono,cant_empleados,id_provincia)
+    values(sucursales.nextval,nombre_s,direccion_s,telefono_s,0,id_provincia_p);
+    commit;
+end insertar_sucursal;
 
-drop table sucursal;
+function lista_sucursales return varchar
+is
+s varchar(500):='';
+v_id Sucursal.id_sucursal%type;
+v_nombre Sucursal.nombre_sucursal%type;
+cursor lista is 
+select id_sucursal,nombre_sucursal
+from Sucursal
+order by id_sucursal;
+begin
+    open lista;
+    loop
+        fetch lista into v_id,v_nombre;
+        exit when lista%NOTFOUND;
+        s:=s||v_id||'. '||v_nombre||Chr(10);
+    end loop;
+    close lista;
+    return s;
+end lista_sucursales;
 
+procedure actualizar_sucursal(id_s Sucursal.id_sucursal%type,nombre_s Sucursal.nombre_sucursal%type,direccion_s Sucursal.direccion%type,telefono_s Sucursal.telefono%type,provincia_s Provincia.nombre%type)
+is
+id_provincia_p Sucursal.id_provincia%type;
+begin
+    case provincia_s
+        when 'San Jose' then id_provincia_p:=1;
+        when 'Alajuela' then id_provincia_p:=2;
+        when 'Heredia' then id_provincia_p:=3;
+        when 'Cartago' then id_provincia_p:=4;
+        when 'Guanacaste' then id_provincia_p:=5;
+        when 'Puntarenas' then id_provincia_p:=6;
+        when 'Limon' then id_provincia_p:=7;
+    end case;
+    update Sucursal
+    set nombre_sucursal=nombre_s,direccion=direccion_s,telefono=telefono_s,id_provincia=id_provincia_p
+    where id_sucursal=id_s;
+    commit;
+end  actualizar_sucursal;
+    
+end paquete_sucursal;
 
-insert into provincia values (1,'San Jose');
-insert into provincia values (2,'Alajuela');
-insert into provincia values (3,'Heredia');
-insert into provincia values (4,'Cartago');
-insert into provincia values (5,'Guanacaste');
-insert into provincia values (6,'Puntarenas');
-insert into provincia values (7,'Limon');
-
-
-
-
-
-create table Provincia(
-id_provincia int not null,
-nombre varchar(50) not null,
-primary key(id_provincia));
-
-create table sucursal(
-id_sucursal int not null,
-nombre_sucursal varchar(50) not null,
-direccion varchar(100) not null,
-telefono varchar(50) not null,
-cant_empleados int not null,
-id_provincia int not null,
-primary key(id_sucursal),
-foreign key(id_provincia) references provincia(id_provincia));
-
+/************************************************* FIN PAQUETE SUCURSAL *****************************************/
 
 
 
