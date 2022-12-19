@@ -36,7 +36,7 @@ public class BuscarSucursal extends javax.swing.JFrame {
         String s = sucursales();
         int opcion;
         try {
-            if (!(s.equals(""))) {
+            if (!(s.equals("null"))) {
                 opcion = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de sucursal que desea consultar: "));
                 if (existe(opcion)) {
                     try {

@@ -8,7 +8,7 @@ import javax.swing.JOptionPane;
 public class NuevoCredito extends javax.swing.JFrame {
 
     private static Connection con = null;
-
+  
     public NuevoCredito() {
         initComponents();
     }
@@ -67,7 +67,7 @@ public class NuevoCredito extends javax.swing.JFrame {
             }
             if (existe(id)) {
                 comprobante = comprobar(id);
-                if (comprobante == 0) {
+                if (comprobante == 0) {  
                     limite = Integer.parseInt(jTextField7.getText());
                     ingresar(id, limite);
                     JOptionPane.showMessageDialog(null, "Credito ingresado correctamente");

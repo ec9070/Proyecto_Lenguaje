@@ -61,6 +61,7 @@ public class BuscarPuesto extends javax.swing.JFrame {
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "No hay puestos");
+                this.dispose();
             }
         }catch (NumberFormatException ex) {
             this.dispose();

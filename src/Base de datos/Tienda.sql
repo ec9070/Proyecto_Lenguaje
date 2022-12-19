@@ -67,39 +67,53 @@ increment by 1;
 create sequence sucursales
 start with 1
 increment by 1;
+
 /************************************************* FIN SEQUENCIAS *****************************************/
 
 
 /************************************************* COMIENZAN TRIGGERS *****************************************/
---Trigger que actualiza el cliente con el credito
-create or replace trigger ingresar_credito
-after insert on credito
+--Trigger que controla el credito
+create or replace trigger accion_credito
+after insert or delete on credito
 for each row
 begin
-    update Cliente
-    set id_credito=:new.id_credito
-    where id_cliente=:new.id_cliente;
+    if INSERTING THEN
+        update Cliente
+        set id_credito=:new.id_credito
+        where id_cliente=:new.id_cliente;
+    end if;
+    if DELETING THEN
+         update Cliente
+        set id_credito=0
+        where id_cliente=:old.id_cliente;
+    end if;
 end;
 
---Trigger que pone en 0 el id del credito cuando se elimina
-create or replace trigger eliminar_credito
-after delete on credito
+--Trigger que controla el la cant_empleados
+create or replace trigger accion_empleado
+after insert or update or delete on empleado
 for each row
 begin
-    update Cliente
-    set id_credito=0
-    where id_cliente=:old.id_cliente;
+    if INSERTING THEN
+        update sucursal
+        set cant_empleados=cant_empleados+1
+        where id_sucursal=:new.id_sucursal;
+    end if;
+    if UPDATING THEN
+        update sucursal
+        set cant_empleados=cant_empleados-1
+        where id_sucursal=:old.id_sucursal;
+        update sucursal
+        set cant_empleados=cant_empleados+1
+        where id_sucursal=:new.id_sucursal;
+    end if;
+    if DELETING THEN
+        update sucursal
+        set cant_empleados=cant_empleados-1
+        where id_sucursal=:old.id_sucursal;
+    end if;
 end;
 
---Trigger que pone en o el id_puesto de un empleado cuando se borra un puesto
-create or replace trigger eliminar_puesto
-before delete on puesto
-for each row
-begin
-    update empleado
-    set empleado.id_puesto=0
-    where empleado.id_puesto=:old.id_puesto;
-end;
 /************************************************* FIN TRIGGERS *****************************************/
 
 
@@ -236,17 +250,23 @@ end actualizar_puesto;
 function existe_puestos return number
 is
 existe int;
-id_p Puesto.id_puesto%type;
+id_c Puesto.id_puesto%type;
+cursor lista is
+select id_puesto
+from puesto;
 begin
-    select id_puesto into id_p
-    from puesto
-    where id_puesto=1;
-    existe:=1;
+    open lista;
+    loop
+        fetch lista into id_c;
+        exit when lista%NOTFOUND; 
+    end loop;
+    if lista%ROWCOUNT>0 then
+        existe:=1;
+    else
+        existe:=0;
+    end if;
+    close lista;
     return existe;
-    EXCEPTION
-    WHEN  NO_DATA_FOUND THEN
-          existe:=0;
-          return existe;
 end existe_puestos;
 
 end paquete_puesto;
@@ -385,16 +405,22 @@ function existe_sucursales return number
 is
 existe int;
 id_s Sucursal.id_sucursal%type;
+cursor lista is
+select id_sucursal
+from sucursal;
 begin
-    select id_sucursal into id_s
-    from sucursal
-    where id_sucursal=1;
-    existe:=1;
+    open lista;
+    loop
+        fetch lista into id_s;
+        exit when lista%NOTFOUND; 
+    end loop;
+    if lista%ROWCOUNT>0 then
+        existe:=1;
+    else
+        existe:=0;
+    end if;
+    close lista;
     return existe;
-    EXCEPTION
-    WHEN  NO_DATA_FOUND THEN
-          existe:=0;
-          return existe;
 end existe_sucursales;
     
 end paquete_sucursal;
@@ -409,6 +435,8 @@ as
 function repetido_empleado(id_e Empleado.id_empleado%type)return number;
 procedure insertar_empleado(id_e Empleado.id_empleado%type,n Empleado.nombre%type,a Empleado.apellidos%type,c Empleado.correo%type,f varchar,
 id_p Empleado.id_puesto%type,s Empleado.salario%type,id_s Empleado.id_sucursal%type);
+procedure actualizar_empleado(id_e Empleado.id_empleado%type,n Empleado.nombre%type,a Empleado.apellidos%type,c Empleado.correo%type,id_p Empleado.id_puesto%type,
+s Empleado.salario%type,id_s Empleado.id_sucursal%type);
 end;
 
 create or replace package body paquete_empleado
@@ -438,10 +466,18 @@ begin
     commit;
 end insertar_empleado;
 
+procedure actualizar_empleado(id_e Empleado.id_empleado%type,n Empleado.nombre%type,a Empleado.apellidos%type,c Empleado.correo%type,id_p Empleado.id_puesto%type,
+s Empleado.salario%type,id_s Empleado.id_sucursal%type)
+is
+begin
+    update empleado
+    set nombre=n,apellidos=a,correo=c,id_puesto=id_p,salario=s,id_sucursal=id_s
+    where id_empleado=id_e;
+    commit;
+end actualizar_empleado;
+
 end paquete_empleado;
 
 /************************************************* FIN PAQUETE EMPLEADO *****************************************/
-
-
 
 

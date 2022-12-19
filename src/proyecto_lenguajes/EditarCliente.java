@@ -106,7 +106,7 @@ public class EditarCliente extends javax.swing.JFrame {
             c.setCorreo(jTextField1.getText());
             c.setTelefono(jTextField2.getText());
             actualizar();
-            JOptionPane.showMessageDialog(null, "Datos actualizado");
+            JOptionPane.showMessageDialog(null, "Datos actualizados");
             return true;
         }
     }

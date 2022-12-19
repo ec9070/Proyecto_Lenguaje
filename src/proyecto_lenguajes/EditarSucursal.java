@@ -36,7 +36,7 @@ public class EditarSucursal extends javax.swing.JFrame {
         int opcion;
         s = sucursales();
         try {
-            if (!(s.equals(""))) {
+            if (!(s.equals("null"))) {
                 opcion = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de sucursal que desea editar: "));
                 if (existe(opcion)) {
                     try {

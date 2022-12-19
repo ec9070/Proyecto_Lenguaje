@@ -1,6 +1,5 @@
 package proyecto_lenguajes;
 
-import Clases.Puesto;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.sql.*;
@@ -70,7 +69,7 @@ public class Menu extends javax.swing.JFrame {
                     con.close();
                     JOptionPane.showMessageDialog(null, "¡Cliente eliminado!");
                 } catch (SQLException ex) {
-                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(null, "¡Debe eliminar el credito primero!");
                 }
             }
         } catch (NullPointerException ex) {
@@ -164,7 +163,6 @@ public class Menu extends javax.swing.JFrame {
             s = s + "Credito de " + nombre + " " + apellidos + "\nId_credito: " + id_credito + "\nLimite: " + limite;
             con.close();
         } catch (SQLException ex) {
-            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
         }
         return s;
     }
@@ -172,14 +170,13 @@ public class Menu extends javax.swing.JFrame {
     public void eliminar_puesto() {
         String s = puestos();
         int id;
-        int opcion;
         try {
             if (!(s.equals(""))) {
-                opcion = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de puesto que desea eliminar: "));
+                id = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de puesto que desea eliminar: "));
                 try {
                     conectar();
                     Statement st = con.createStatement();
-                    ResultSet rs = st.executeQuery("select id_puesto from puesto where id_puesto=" + opcion);
+                    ResultSet rs = st.executeQuery("select id_puesto from puesto where id_puesto=" + id);
                     rs.next();
                     id = rs.getInt(1);
                     con.close();
@@ -194,7 +191,7 @@ public class Menu extends javax.swing.JFrame {
                             con.close();
                             JOptionPane.showMessageDialog(null, "¡Puesto eliminado!");
                         } catch (SQLException ex) {
-                            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                            JOptionPane.showMessageDialog(null, "Hay empleados en este puesto");
                         }
                     }
                 } catch (SQLException ex) {
@@ -202,7 +199,6 @@ public class Menu extends javax.swing.JFrame {
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "No hay puestos");
-                this.dispose();
             }
         } catch (NumberFormatException ex) {
         }
@@ -224,6 +220,103 @@ public class Menu extends javax.swing.JFrame {
         return s;
     }
 
+    public void eliminar_sucursal() {
+        String s = sucursales();
+        int id;
+        try {
+            if (!(s.equals("null"))) {
+                id = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de sucursal que desea eliminar: "));
+                try {
+                    conectar();
+                    Statement st = con.createStatement();
+                    ResultSet rs = st.executeQuery("select id_puesto from puesto where id_puesto=" + id);
+                    rs.next();
+                    id = rs.getInt(1);
+                    con.close();
+                    if (id == 0) {
+                        JOptionPane.showMessageDialog(null, "la sucursal no existe");
+                    } else {
+                        try {
+                            conectar();
+                            st = con.createStatement();
+                            st.executeQuery("delete from sucursal where id_sucursal=" + id);
+                            st.executeQuery("commit");
+                            con.close();
+                            JOptionPane.showMessageDialog(null, "¡Sucursal eliminado!");
+                        } catch (SQLException ex) {
+                            JOptionPane.showMessageDialog(null, "Hay empleados en esta sucursal");
+                        }
+                    }
+                } catch (SQLException ex) {
+                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "No hay sucursales");
+            }
+        } catch (NumberFormatException ex) {
+        }
+
+    }
+
+    public String sucursales() {
+        String s = "";
+        try {
+            conectar();
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery("select paquete_sucursal.lista_sucursales from dual");
+            rs.next();
+            s = s + rs.getString(1);
+            con.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return s;
+    }
+
+    public void eliminar_empleado() {
+        String id;
+        id = JOptionPane.showInputDialog(null, "Digite la cedula que desea eliminar: ");
+        try {
+            while (!(id.length() == 9)) {
+                id = JOptionPane.showInputDialog(null, "La cedula debe tener 9 digitos vuelva a ingresarla: ");
+            }
+            if (!existe_empleado(id)) {
+                JOptionPane.showMessageDialog(null, "¡El empleado no existe!");
+            } else {
+                try {
+                    conectar();
+                    Statement st = con.createStatement();
+                    st.executeQuery("delete from Empleado where id_empleado='" + id + "'");
+                    st.executeQuery("commit");
+                    con.close();
+                    JOptionPane.showMessageDialog(null, "¡Empleado eliminado!");
+                } catch (SQLException ex) {
+                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        } catch (NullPointerException ex) {
+        }
+    }
+
+    public boolean existe_empleado(String id) {
+        int aux = 0;
+        try {
+            conectar();
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery("select paquete_empleado.repetido_empleado('" + id + "') from dual");
+            while (rs.next()) {
+                aux = rs.getInt(1);
+            }
+            con.close();
+            if (aux == 1) {
+                return true;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -233,23 +326,27 @@ public class Menu extends javax.swing.JFrame {
         jMenu2 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenuItem2 = new javax.swing.JMenuItem();
-        jMenuItem3 = new javax.swing.JMenuItem();
         jMenuItem4 = new javax.swing.JMenuItem();
+        jMenuItem3 = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
         jMenuItem5 = new javax.swing.JMenuItem();
         jMenuItem6 = new javax.swing.JMenuItem();
         jMenuItem11 = new javax.swing.JMenuItem();
         jMenu4 = new javax.swing.JMenu();
         jMenuItem7 = new javax.swing.JMenuItem();
-        jMenuItem8 = new javax.swing.JMenuItem();
         jMenuItem9 = new javax.swing.JMenuItem();
+        jMenuItem8 = new javax.swing.JMenuItem();
         jMenuItem15 = new javax.swing.JMenuItem();
         jMenu5 = new javax.swing.JMenu();
         jMenuItem10 = new javax.swing.JMenuItem();
         jMenuItem12 = new javax.swing.JMenuItem();
         jMenuItem13 = new javax.swing.JMenuItem();
+        jMenuItem16 = new javax.swing.JMenuItem();
         jMenu6 = new javax.swing.JMenu();
         jMenuItem14 = new javax.swing.JMenuItem();
+        jMenuItem17 = new javax.swing.JMenuItem();
+        jMenuItem18 = new javax.swing.JMenuItem();
+        jMenuItem19 = new javax.swing.JMenuItem();
 
         jMenu1.setText("jMenu1");
 
@@ -280,6 +377,15 @@ public class Menu extends javax.swing.JFrame {
         });
         jMenu2.add(jMenuItem2);
 
+        jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItem4.setText("Consultar cliente");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem4ActionPerformed(evt);
+            }
+        });
+        jMenu2.add(jMenuItem4);
+
         jMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItem3.setText("Eliminar cliente");
         jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
@@ -288,15 +394,6 @@ public class Menu extends javax.swing.JFrame {
             }
         });
         jMenu2.add(jMenuItem3);
-
-        jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        jMenuItem4.setText("Buscar cliente");
-        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem4ActionPerformed(evt);
-            }
-        });
-        jMenu2.add(jMenuItem4);
 
         jMenuBar1.add(jMenu2);
 
@@ -342,15 +439,6 @@ public class Menu extends javax.swing.JFrame {
         });
         jMenu4.add(jMenuItem7);
 
-        jMenuItem8.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_I, java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        jMenuItem8.setText("Buscar puesto");
-        jMenuItem8.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem8ActionPerformed(evt);
-            }
-        });
-        jMenu4.add(jMenuItem8);
-
         jMenuItem9.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItem9.setText("EditarPuesto");
         jMenuItem9.addActionListener(new java.awt.event.ActionListener() {
@@ -359,6 +447,15 @@ public class Menu extends javax.swing.JFrame {
             }
         });
         jMenu4.add(jMenuItem9);
+
+        jMenuItem8.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_I, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItem8.setText("Consultar puesto");
+        jMenuItem8.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem8ActionPerformed(evt);
+            }
+        });
+        jMenu4.add(jMenuItem8);
 
         jMenuItem15.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Y, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItem15.setText("Eliminar Puesto");
@@ -400,6 +497,15 @@ public class Menu extends javax.swing.JFrame {
         });
         jMenu5.add(jMenuItem13);
 
+        jMenuItem16.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_U, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItem16.setText("Eliminar Sucursal");
+        jMenuItem16.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem16ActionPerformed(evt);
+            }
+        });
+        jMenu5.add(jMenuItem16);
+
         jMenuBar1.add(jMenu5);
 
         jMenu6.setText("Empleados");
@@ -412,6 +518,33 @@ public class Menu extends javax.swing.JFrame {
             }
         });
         jMenu6.add(jMenuItem14);
+
+        jMenuItem17.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_D, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItem17.setText("Editar Empleado");
+        jMenuItem17.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem17ActionPerformed(evt);
+            }
+        });
+        jMenu6.add(jMenuItem17);
+
+        jMenuItem18.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItem18.setText("Consultar Empleado");
+        jMenuItem18.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem18ActionPerformed(evt);
+            }
+        });
+        jMenu6.add(jMenuItem18);
+
+        jMenuItem19.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_G, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItem19.setText("Eliminar Empleado");
+        jMenuItem19.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem19ActionPerformed(evt);
+            }
+        });
+        jMenu6.add(jMenuItem19);
 
         jMenuBar1.add(jMenu6);
 
@@ -536,6 +669,30 @@ public class Menu extends javax.swing.JFrame {
         eliminar_puesto();
     }//GEN-LAST:event_jMenuItem15ActionPerformed
 
+    private void jMenuItem16ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem16ActionPerformed
+        eliminar_sucursal();
+    }//GEN-LAST:event_jMenuItem16ActionPerformed
+
+    private void jMenuItem17ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem17ActionPerformed
+        EditarEmpleado e = new EditarEmpleado();
+        e.setVisible(true);
+        e.pack();
+        e.setLocationRelativeTo(null);
+        e.datos();
+    }//GEN-LAST:event_jMenuItem17ActionPerformed
+
+    private void jMenuItem18ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem18ActionPerformed
+        BuscarEmpleado e = new BuscarEmpleado();
+        e.setVisible(true);
+        e.pack();
+        e.setLocationRelativeTo(null);
+        e.buscar();
+    }//GEN-LAST:event_jMenuItem18ActionPerformed
+
+    private void jMenuItem19ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem19ActionPerformed
+        eliminar_empleado();
+    }//GEN-LAST:event_jMenuItem19ActionPerformed
+
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -586,6 +743,10 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem13;
     private javax.swing.JMenuItem jMenuItem14;
     private javax.swing.JMenuItem jMenuItem15;
+    private javax.swing.JMenuItem jMenuItem16;
+    private javax.swing.JMenuItem jMenuItem17;
+    private javax.swing.JMenuItem jMenuItem18;
+    private javax.swing.JMenuItem jMenuItem19;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;

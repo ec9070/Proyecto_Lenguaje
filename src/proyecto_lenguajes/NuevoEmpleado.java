@@ -35,7 +35,7 @@ public class NuevoEmpleado extends javax.swing.JFrame {
         if (existe_puestos()) {
             llenar_puestos();
         } else {
-             JOptionPane.showMessageDialog(null, "No hay puestos");
+            JOptionPane.showMessageDialog(null, "No hay puestos");
             this.dispose();
         }
         if (existe_sucursales()) {
