@@ -39,6 +39,18 @@ id_provincia int not null,
 primary key(id_sucursal),
 foreign key(id_provincia) references provincia(id_provincia));
 
+create table empleado(
+id_empleado varchar(9) not null,
+nombre varchar(50) not null,
+apellidos varchar(50) not null,
+correo varchar(50) not null,
+fecha_contratado date not null,
+id_puesto int not null,
+salario int not null,
+id_sucursal int not null,
+primary key(id_empleado),
+foreign key(id_puesto) references puesto(id_puesto),
+foreign key(id_sucursal) references sucursal(id_sucursal));
 
 /************************************************* COMIENZAN SEQUENCIAS *****************************************/
 --Sequencia para la tabla credito
@@ -77,6 +89,16 @@ begin
     update Cliente
     set id_credito=0
     where id_cliente=:old.id_cliente;
+end;
+
+--Trigger que pone en o el id_puesto de un empleado cuando se borra un puesto
+create or replace trigger eliminar_puesto
+before delete on puesto
+for each row
+begin
+    update empleado
+    set empleado.id_puesto=0
+    where empleado.id_puesto=:old.id_puesto;
 end;
 /************************************************* FIN TRIGGERS *****************************************/
 
@@ -173,6 +195,7 @@ as
 function repetido_puesto(nombre in Puesto.nombre_puesto%type) return number; 
 procedure insertar_puesto(nombre_p Puesto.nombre_puesto%type,min_salario_p Puesto.min_salario%type,max_salario_p Puesto.max_salario%type);
 procedure actualizar_puesto(id_p Puesto.id_puesto%type,min_salario_p Puesto.min_salario%type,max_salario_p Puesto.max_salario%type);
+function existe_puestos return number;
 end;
 
 create or replace package body paquete_puesto
@@ -210,7 +233,24 @@ begin
     commit;
 end actualizar_puesto;
 
+function existe_puestos return number
+is
+existe int;
+id_p Puesto.id_puesto%type;
+begin
+    select id_puesto into id_p
+    from puesto
+    where id_puesto=1;
+    existe:=1;
+    return existe;
+    EXCEPTION
+    WHEN  NO_DATA_FOUND THEN
+          existe:=0;
+          return existe;
+end existe_puestos;
+
 end paquete_puesto;
+
 
 /************************************************* FIN PAQUETE PUESTO *****************************************/
 
@@ -226,6 +266,7 @@ procedure insertar_sucursal(nombre_s Sucursal.nombre_sucursal%type,direccion_s S
 provincia_s Provincia.nombre%type);
 function lista_sucursales return varchar;
 procedure actualizar_sucursal(id_s Sucursal.id_sucursal%type,nombre_s Sucursal.nombre_sucursal%type,direccion_s Sucursal.direccion%type,telefono_s Sucursal.telefono%type,provincia_s Provincia.nombre%type);
+function existe_sucursales return number;
 end;
 
 create or replace package body paquete_sucursal
@@ -339,10 +380,67 @@ begin
     where id_sucursal=id_s;
     commit;
 end  actualizar_sucursal;
+
+function existe_sucursales return number
+is
+existe int;
+id_s Sucursal.id_sucursal%type;
+begin
+    select id_sucursal into id_s
+    from sucursal
+    where id_sucursal=1;
+    existe:=1;
+    return existe;
+    EXCEPTION
+    WHEN  NO_DATA_FOUND THEN
+          existe:=0;
+          return existe;
+end existe_sucursales;
     
 end paquete_sucursal;
 
 /************************************************* FIN PAQUETE SUCURSAL *****************************************/
+
+
+/************************************************* COMIENZA PAQUETE EMPLEADO *****************************************/
+
+create or replace package paquete_empleado
+as
+function repetido_empleado(id_e Empleado.id_empleado%type)return number;
+procedure insertar_empleado(id_e Empleado.id_empleado%type,n Empleado.nombre%type,a Empleado.apellidos%type,c Empleado.correo%type,f varchar,
+id_p Empleado.id_puesto%type,s Empleado.salario%type,id_s Empleado.id_sucursal%type);
+end;
+
+create or replace package body paquete_empleado
+as
+function repetido_empleado(id_e Empleado.id_empleado%type)return number
+is
+existe int;
+id_e2 Empleado.id_empleado%type;
+begin
+    select id_empleado into id_e2
+    from Empleado
+    where id_empleado=id_e;
+    existe:=1;
+    return existe;
+    EXCEPTION
+    WHEN  NO_DATA_FOUND THEN
+          existe:=0;
+          return existe;
+end repetido_empleado;
+
+procedure insertar_empleado(id_e Empleado.id_empleado%type,n Empleado.nombre%type,a Empleado.apellidos%type,c Empleado.correo%type,f varchar,
+id_p Empleado.id_puesto%type,s Empleado.salario%type,id_s Empleado.id_sucursal%type)
+is
+begin
+    insert into Empleado(id_empleado,nombre,apellidos,correo,fecha_contratado,id_puesto,salario,id_sucursal)
+    values(id_e,n,a,c,to_date(f,'DD/MM/YYYY'),id_p,s,id_s);
+    commit;
+end insertar_empleado;
+
+end paquete_empleado;
+
+/************************************************* FIN PAQUETE EMPLEADO *****************************************/
 
 
 

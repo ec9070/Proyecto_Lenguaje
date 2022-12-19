@@ -48,6 +48,7 @@ public class EditarPuesto extends javax.swing.JFrame {
                         p.setMin_salario(rs.getInt(3));
                         p.setMax_salario(rs.getInt(4));
                     }
+                    con.close();
                     if (p.getId_puesto() == 0) {
                         JOptionPane.showMessageDialog(null, "El puesto no existe");
                         this.dispose();
@@ -188,7 +189,7 @@ public class EditarPuesto extends javax.swing.JFrame {
         jLabel11.setBackground(new java.awt.Color(1, 65, 92));
         jLabel11.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         jLabel11.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel11.setText("id:");
+        jLabel11.setText("Id:");
 
         jButton2.setBackground(new java.awt.Color(110, 111, 115));
         jButton2.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N

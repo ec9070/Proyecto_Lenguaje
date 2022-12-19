@@ -2,7 +2,6 @@ package proyecto_lenguajes;
 
 import Clases.Puesto;
 import java.sql.Connection;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.sql.*;
