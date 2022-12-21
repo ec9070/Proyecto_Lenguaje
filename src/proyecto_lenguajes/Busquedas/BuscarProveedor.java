@@ -1,17 +1,18 @@
-package proyecto_lenguajes;
+package proyecto_lenguajes.Busquedas;
 
-import Clases.Puesto;
+import Clases.Proveedor;
+import java.sql.Connection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.sql.*;
 import javax.swing.JOptionPane;
+import proyecto_lenguajes.Menu;
 
-public class EditarPuesto extends javax.swing.JFrame {
+public class BuscarProveedor extends javax.swing.JFrame {
 
     private static Connection con = null;
-    Puesto p = new Puesto();
 
-    public EditarPuesto() {
+    public BuscarProveedor() {
         initComponents();
     }
 
@@ -31,57 +32,58 @@ public class EditarPuesto extends javax.swing.JFrame {
         }
     }
 
-    public void datos() {
-        String s;
+    public void buscar() {
+        String s = proveedores();
+        Proveedor p = new Proveedor();
         int opcion;
-        s = puestos();
         try {
             if (!(s.equals(""))) {
-                opcion = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de puesto que desea editar: "));
+                opcion = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de proveedor que desea consultar: "));
                 try {
                     conectar();
                     Statement st = con.createStatement();
-                    ResultSet rs = st.executeQuery("select * from puesto where id_puesto=" + opcion);
-                    while (rs.next()) {
-                        p.setId_puesto(rs.getInt(1));
-                        p.setNombre_puesto(rs.getString(2));
-                        p.setMin_salario(rs.getInt(3));
-                        p.setMax_salario(rs.getInt(4));
-                    }
+                    ResultSet rs = st.executeQuery("select * from proveedor where id_proveedor=" + opcion);
+                    rs.next();
+                    p.setId_proveedor(rs.getInt(1));
+                    p.setNom_proveedor(rs.getString(2));
+                    p.setTelefono(rs.getString(3));
+                    p.setCorreo(rs.getString(4));
                     con.close();
-                    if (p.getId_puesto() == 0) {
-                        JOptionPane.showMessageDialog(null, "El puesto no existe");
+                    if (p.getId_proveedor() == 0) {
+                        JOptionPane.showMessageDialog(null, "El proveedor no existe");
                         this.dispose();
                     } else {
-                        llenar();
+                        llenar(p);
                     }
                 } catch (SQLException ex) {
                     Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } else {
-                JOptionPane.showMessageDialog(null, "No hay puestos");
+                JOptionPane.showMessageDialog(null, "No hay proveedores");
                 this.dispose();
             }
         } catch (NumberFormatException ex) {
             this.dispose();
         }
     }
-
-    public void llenar() {
-        jSpinner1.setValue(p.getId_puesto());
-        jTextField7.setText(p.getNombre_puesto());
-        jTextField5.setText(String.valueOf(p.getMin_salario()));
-        jTextField1.setText(String.valueOf(p.getMax_salario()));
+    
+    public void llenar(Proveedor p){
+        jSpinner1.setValue(p.getId_proveedor());
+        jTextField7.setText(p.getNom_proveedor());
+        jTextField5.setText(p.getTelefono());
+        jTextField1.setText(p.getCorreo());
         jSpinner1.setEnabled(false);
-        jTextField7.setEnabled(false);
+        jTextField7.setEditable(false);
+        jTextField5.setEditable(false);
+        jTextField1.setEditable(false);
     }
 
-    public String puestos() {
+    public String proveedores() {
         String s = "";
         try {
             conectar();
             Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("select id_puesto,nombre_puesto from puesto");
+            ResultSet rs = st.executeQuery("select id_proveedor,nom_proveedor from proveedor");
             while (rs.next()) {
                 s = s + rs.getInt(1) + ". " + rs.getString(2) + "\n";
             }
@@ -90,45 +92,6 @@ public class EditarPuesto extends javax.swing.JFrame {
             Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
         }
         return s;
-    }
-
-    public boolean editar() {
-        try {
-            if ((jTextField5.getText().equals("")) || (jTextField1.getText().equals(""))) {
-                JOptionPane.showMessageDialog(null, "¡Todos los campos deben estar llenos!");
-                return false;
-            }
-            if (Integer.parseInt(jTextField5.getText()) < 350000) {
-                JOptionPane.showMessageDialog(null, "El salario minimo es de 350000");
-                return false;
-            } else if ((Integer.parseInt(jTextField1.getText())) < (Integer.parseInt(jTextField5.getText()))) {
-                JOptionPane.showMessageDialog(null, "El salario maximo debe ser mayor o igual minimo");
-                return false;
-            } else {
-                p.setMin_salario(Integer.parseInt(jTextField5.getText()));
-                p.setMax_salario(Integer.parseInt(jTextField1.getText()));
-                actualizar();
-                JOptionPane.showMessageDialog(null, "Puesto actualizado");
-                return true;
-            }
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(null, "Formato no valido");
-            return false;
-        }
-    }
-
-    public void actualizar() {
-        try {
-            conectar();
-            CallableStatement cst = con.prepareCall("{call paquete_puesto.actualizar_puesto(?,?,?)}");
-            cst.setInt(1, p.getId_puesto());
-            cst.setInt(2, p.getMin_salario());
-            cst.setInt(3, p.getMax_salario());
-            cst.execute();
-            con.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 
     /**
@@ -150,8 +113,6 @@ public class EditarPuesto extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         jLabel11 = new javax.swing.JLabel();
         jSpinner1 = new javax.swing.JSpinner();
-        jButton2 = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -159,13 +120,13 @@ public class EditarPuesto extends javax.swing.JFrame {
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel1.setText("Puesto");
+        jLabel1.setText("Proveedor");
         jLabel1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
         jLabel6.setBackground(new java.awt.Color(1, 65, 92));
         jLabel6.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         jLabel6.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel6.setText("Salario Minimo:");
+        jLabel6.setText("Telefono:");
 
         jTextField5.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jTextField5.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -184,70 +145,42 @@ public class EditarPuesto extends javax.swing.JFrame {
         jLabel4.setBackground(new java.awt.Color(1, 65, 92));
         jLabel4.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         jLabel4.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel4.setText("Salario Maximo:");
+        jLabel4.setText("Correo:");
 
         jLabel11.setBackground(new java.awt.Color(1, 65, 92));
         jLabel11.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         jLabel11.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel11.setText("Id:");
-
-        jButton2.setBackground(new java.awt.Color(110, 111, 115));
-        jButton2.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton2.setForeground(new java.awt.Color(255, 255, 255));
-        jButton2.setText("Guardar Cambios");
-        jButton2.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
-
-        jButton1.setBackground(new java.awt.Color(110, 111, 115));
-        jButton1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton1.setForeground(new java.awt.Color(255, 255, 255));
-        jButton1.setText("Cancelar");
-        jButton1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
+        jLabel11.setText("id:");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel1)
-                .addGap(209, 209, 209))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addGap(0, 74, Short.MAX_VALUE)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.LEADING))
-                    .addComponent(jLabel4)
-                    .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(46, 46, 46)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTextField7, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE)
-                        .addComponent(jTextField5, javax.swing.GroupLayout.Alignment.LEADING)))
-                .addGap(55, 55, 55))
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(65, 65, 65)
-                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(80, 80, 80)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(0, 71, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.LEADING))
+                            .addComponent(jLabel4)
+                            .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(46, 46, 46)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jTextField7, javax.swing.GroupLayout.DEFAULT_SIZE, 185, Short.MAX_VALUE)
+                            .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jTextField5)
+                            .addComponent(jTextField1))
+                        .addGap(55, 55, 55))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(152, 152, 152))))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(29, 29, 29)
+                .addGap(27, 27, 27)
                 .addComponent(jLabel1)
                 .addGap(26, 26, 26)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -265,11 +198,7 @@ public class EditarPuesto extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel4)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(55, 55, 55)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(26, Short.MAX_VALUE))
+                .addContainerGap(70, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -285,16 +214,6 @@ public class EditarPuesto extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        if (editar()) {
-            this.dispose();
-        }
-    }//GEN-LAST:event_jButton2ActionPerformed
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        this.dispose();
-    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -313,27 +232,25 @@ public class EditarPuesto extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(EditarPuesto.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(BuscarProveedor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(EditarPuesto.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(BuscarProveedor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(EditarPuesto.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(BuscarProveedor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(EditarPuesto.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(BuscarProveedor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new EditarPuesto().setVisible(true);
+                new BuscarProveedor().setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;

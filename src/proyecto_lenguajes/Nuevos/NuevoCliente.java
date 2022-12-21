@@ -1,16 +1,17 @@
-package proyecto_lenguajes;
+package proyecto_lenguajes.Nuevos;
 
 import Clases.Cliente;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.sql.*;
 import javax.swing.JOptionPane;
+import proyecto_lenguajes.Menu;
 
-public class RegistrarCliente extends javax.swing.JFrame {
+public class NuevoCliente extends javax.swing.JFrame {
 
     private static Connection con = null;
 
-    public RegistrarCliente() {
+    public NuevoCliente() {
         initComponents();
     }
 
@@ -304,20 +305,21 @@ public class RegistrarCliente extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(RegistrarCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(NuevoCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(RegistrarCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(NuevoCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(RegistrarCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(NuevoCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(RegistrarCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(NuevoCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new RegistrarCliente().setVisible(true);
+                new NuevoCliente().setVisible(true);
             }
         });
     }

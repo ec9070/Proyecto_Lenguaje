@@ -52,6 +52,35 @@ primary key(id_empleado),
 foreign key(id_puesto) references puesto(id_puesto),
 foreign key(id_sucursal) references sucursal(id_sucursal));
 
+create table pago_salario(
+num_pago int not null,
+fecha date not null,
+descripcion varchar(100) not null,
+id_empleado varchar(9) not null,
+total int not null,
+primary key(num_pago),
+foreign key(id_empleado) references empleado(id_empleado));
+
+create table proveedor(
+id_proveedor int not null,
+nom_proveedor varchar(50) not null,
+telefono varchar(50) not null,
+correo varchar(50) not null,
+primary key(id_proveedor));
+
+create table producto(
+codigo varchar(5) not null,
+modelo varchar(50) not null,
+id_proveedor int not null,
+precio int not null,
+existencias int not null,
+id_sucursal int not null,
+primary key(codigo),
+foreign key(id_proveedor) references proveedor(id_proveedor),
+foreign key(id_sucursal) references sucursal(id_sucursal));
+
+
+
 /************************************************* COMIENZAN SEQUENCIAS *****************************************/
 --Sequencia para la tabla credito
 create sequence creditos
@@ -67,6 +96,17 @@ increment by 1;
 create sequence sucursales
 start with 1
 increment by 1;
+
+--Sequencia para pagos
+create sequence pagos
+start with 1
+increment by 1;
+
+--Sequencia para proveedores
+create sequence proveedores
+start with 1
+increment by 1;
+
 
 /************************************************* FIN SEQUENCIAS *****************************************/
 
@@ -177,6 +217,7 @@ as
 procedure insertar_credito(id_c Cliente.id_cliente%type,limite_c Credito.limite%type);
 procedure buscar_credito(id_c in Cliente.id_cliente%type,id_cre out Credito.id_credito%type,limite_c out Credito.limite%type,
 nombre_c out Cliente.nombre%type,apellidos_c out Cliente.apellidos%type);
+procedure actualizar_credito(id_c Credito.id_credito%type,limite_c Credito.limite%type);
 end;
 
 create or replace package body paquete_credito
@@ -197,6 +238,15 @@ begin
     from credito,cliente
     where credito.id_cliente=id_c and credito.id_credito=cliente.id_credito;
 end buscar_credito;
+
+procedure actualizar_credito(id_c Credito.id_credito%type,limite_c Credito.limite%type)
+is
+begin
+    update credito
+    set limite=limite_c
+    where id_credito=id_c;
+    commit;
+end actualizar_credito;
 
 end paquete_credito;
 /************************************************* FIN DE PAQUETE CREDITO *****************************************/
@@ -480,4 +530,203 @@ end paquete_empleado;
 
 /************************************************* FIN PAQUETE EMPLEADO *****************************************/
 
+/************************************************* COMIENZA PAQUETE PAGO*****************************************/
+
+create or replace package paquete_pago
+as
+function pago_fecha(id_e Pago_salario.id_empleado%type) return number;
+procedure insertar_pago(des Pago_salario.descripcion%type,id_e Pago_salario.id_empleado%type,total_p Pago_salario.total%type);
+end;
+
+create or replace package body paquete_pago
+as
+function pago_fecha(id_e Pago_salario.id_empleado%type) return number
+is
+fecha_p pago_salario.fecha%type;
+existe int;
+begin
+    select fecha into fecha_p
+    from pago_salario
+    where TRUNC(fecha) = TRUNC(sysdate) and id_empleado=id_e;
+    existe:=1;
+    return existe;
+    EXCEPTION
+    WHEN  NO_DATA_FOUND THEN
+          existe:=0;
+          return existe;
+end pago_fecha;
+
+procedure insertar_pago(des Pago_salario.descripcion%type,id_e Pago_salario.id_empleado%type,total_p Pago_salario.total%type)
+is
+begin
+    insert into pago_salario(num_pago,fecha,descripcion,id_empleado,total)
+    values(pagos.nextval,sysdate,des,id_e,total_p);
+    commit;
+end insertar_pago;
+
+end paquete_pago;
+
+/************************************************* FIN PAQUETE PAGO*****************************************/
+
+/************************************************* COMIENZA PAQUETE PROVEEDOR*****************************************/
+
+create or replace package paquete_proveedor
+as
+function repetido_proveedor(nombre_p Proveedor.nom_proveedor%type) return number;
+procedure insertar_proveedor(nom Proveedor.nom_proveedor%type,tel Proveedor.telefono%type,correo_p Proveedor.correo%type);
+procedure actualizar_proveedor(id_p Proveedor.id_proveedor%type,tel Proveedor.telefono%type,correo_p Proveedor.correo%type);
+function existe_proveedores return number;
+end;
+
+create or replace package body paquete_proveedor
+as
+function repetido_proveedor(nombre_p Proveedor.nom_proveedor%type) return number
+is
+existe int;
+nombre_2 Proveedor.nom_proveedor%type;
+begin
+    select nom_proveedor into nombre_2
+    from Proveedor
+    where nom_proveedor=nombre_p;
+    existe:=1;
+    return existe;
+    EXCEPTION
+    WHEN  NO_DATA_FOUND THEN
+          existe:=0;
+          return existe;
+end repetido_proveedor;
+
+procedure insertar_proveedor(nom Proveedor.nom_proveedor%type,tel Proveedor.telefono%type,correo_p Proveedor.correo%type)
+is
+begin
+    insert into proveedor(id_proveedor,nom_proveedor,telefono,correo)
+    values(proveedores.nextval,nom,tel,correo_p);
+    commit;
+end insertar_proveedor;
+
+procedure actualizar_proveedor(id_p Proveedor.id_proveedor%type,tel Proveedor.telefono%type,correo_p Proveedor.correo%type)
+is
+begin
+    update proveedor
+    set telefono=tel,correo=correo_p
+    where id_proveedor=id_p;
+    commit;
+end actualizar_proveedor;
+
+function existe_proveedores return number
+is
+existe int;
+id_p Proveedor.id_proveedor%type;
+cursor lista is
+select id_proveedor
+from proveedor;
+begin
+    open lista;
+    loop
+        fetch lista into id_p;
+        exit when lista%NOTFOUND; 
+    end loop;
+    if lista%ROWCOUNT>0 then
+        existe:=1;
+    else
+        existe:=0;
+    end if;
+    close lista;
+    return existe;
+end existe_proveedores;
+
+end paquete_proveedor;
+
+/************************************************* FIN PAQUETE PROVEEDOR*****************************************/
+
+/************************************************* COMIENZA PAQUETE PRODUCTO*****************************************/
+
+create or replace package paquete_producto
+as
+function repetido_producto(codigo_p Producto.codigo%type) return number;
+procedure insertar_producto(codigo_p Producto.codigo%type,m Producto.modelo%type,id_p Producto.id_proveedor%type,p Producto.precio%type,e Producto.existencias%type,
+id_s Producto.id_sucursal%type);
+function lista_productos return varchar;
+procedure actualizar_producto(c Producto.codigo%type,p Producto.precio%type,e Producto.existencias%type,id_s Producto.id_sucursal%type);
+end;
+
+create or replace package body paquete_producto
+as
+function repetido_producto(codigo_p Producto.codigo%type) return number
+is
+existe int;
+codigo_2 Producto.codigo%type;
+begin
+    select codigo into codigo_2
+    from Producto
+    where codigo=codigo_p;
+    existe:=1;
+    return existe;
+    EXCEPTION
+    WHEN  NO_DATA_FOUND THEN
+          existe:=0;
+          return existe;
+end repetido_producto;
+
+procedure insertar_producto(codigo_p Producto.codigo%type,m Producto.modelo%type,id_p Producto.id_proveedor%type,p Producto.precio%type,e Producto.existencias%type,
+id_s Producto.id_sucursal%type)
+is
+begin 
+    insert into producto(codigo,modelo,id_proveedor,precio,existencias,id_sucursal)
+    values(codigo_p,m,id_p,p,e,id_s);
+    commit;
+end insertar_producto;
+
+function lista_productos return varchar
+is
+s varchar(500):='';
+v_id Producto.codigo%type;
+v_modelo Producto.modelo%type;
+v_proveedor Proveedor.nom_proveedor%type;
+cursor lista is 
+select codigo,modelo,nom_proveedor
+from Producto,Proveedor
+where Producto.id_proveedor=Proveedor.id_proveedor;
+begin
+    open lista;
+    loop
+        fetch lista into v_id,v_modelo,v_proveedor;
+        exit when lista%NOTFOUND;
+        s:=s||v_id||'. '||v_proveedor||' '||v_modelo||Chr(10);
+    end loop;
+    close lista;
+    return s;
+end lista_productos;
+
+procedure actualizar_producto(c Producto.codigo%type,p Producto.precio%type,e Producto.existencias%type,id_s Producto.id_sucursal%type)
+is
+begin
+    update producto
+    set precio=p,existencias=e,id_sucursal=id_s
+    where codigo=c;
+    commit;
+end actualizar_producto;
+
+end paquete_producto;
+
+/************************************************* FIN PAQUETE PRODUCTO*****************************************/
+
+/************ Momentanio ****************/
+select * from credito;
+
+select * from cliente;
+
+select * from puesto;
+
+select * from empleado;
+
+select * from pago_salario;
+
+select * from proveedor;
+
+select * from producto;
+
+
+
+select * from sucursal;
 

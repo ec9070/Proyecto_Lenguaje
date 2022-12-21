@@ -1,4 +1,4 @@
-package proyecto_lenguajes;
+package proyecto_lenguajes.Ediciones;
 
 import Clases.Empleado;
 import Clases.Puesto;
@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.sql.*;
 import javax.swing.JOptionPane;
+import proyecto_lenguajes.Menu;
 
 public class EditarEmpleado extends javax.swing.JFrame {
 
@@ -262,7 +263,7 @@ public class EditarEmpleado extends javax.swing.JFrame {
         jLabel14 = new javax.swing.JLabel();
         jComboBox2 = new javax.swing.JComboBox<>();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jPanel1.setBackground(new java.awt.Color(1, 65, 92));
 

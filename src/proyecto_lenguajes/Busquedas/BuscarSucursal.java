@@ -1,4 +1,4 @@
-package proyecto_lenguajes;
+package proyecto_lenguajes.Busquedas;
 
 import Clases.Sucursal;
 import java.sql.Connection;
@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.sql.*;
 import javax.swing.JOptionPane;
+import proyecto_lenguajes.Menu;
 
 public class BuscarSucursal extends javax.swing.JFrame {
 

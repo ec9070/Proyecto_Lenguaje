@@ -1,17 +1,20 @@
-package proyecto_lenguajes;
+package proyecto_lenguajes.Ediciones;
 
-import Clases.Cliente;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.sql.*;
 import javax.swing.JOptionPane;
+import proyecto_lenguajes.Menu;
 
-public class EditarCliente extends javax.swing.JFrame {
+public class EditarCredito extends javax.swing.JFrame {
 
     private static Connection con = null;
-    Cliente c = new Cliente();
+    String nombre = "";
+    String apellidos = "";
+    int id_credito = 0;
+    int limite = 0;
 
-    public EditarCliente() {
+    public EditarCredito() {
         initComponents();
     }
 
@@ -28,6 +31,51 @@ public class EditarCliente extends javax.swing.JFrame {
             }
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void datos() {
+        String id;
+        id = JOptionPane.showInputDialog(null, "Digite el cedula del cliente para editar el credito: ");
+        try {
+            while (!(id.length() == 9)) {
+                id = JOptionPane.showInputDialog(null, "La cedula debe tener 9 digitos vuelva a ingresarla: ");
+            }
+            if (!existe(id)) {
+                JOptionPane.showMessageDialog(null, "¡El cliente no existe!");
+            } else {
+                buscar(id);
+                if (!(nombre.equals(""))) {
+                    jTextField7.setText(nombre);
+                    jTextField5.setText(apellidos);
+                    jTextField1.setText(String.valueOf(limite));
+                    jTextField7.setEditable(false);
+                    jTextField5.setEditable(false);
+                } else {
+                    JOptionPane.showMessageDialog(null, "El cliente no tiene credito");
+                }
+            }
+        } catch (NullPointerException ex) {
+            this.dispose();
+        }
+    }
+
+    public void buscar(String id) {
+        try {
+            conectar();
+            CallableStatement cst = con.prepareCall("{call paquete_credito.buscar_credito(?,?,?,?,?)}");
+            cst.setString(1, id);
+            cst.registerOutParameter(2, java.sql.Types.INTEGER);
+            cst.registerOutParameter(3, java.sql.Types.INTEGER);
+            cst.registerOutParameter(4, java.sql.Types.VARCHAR);
+            cst.registerOutParameter(5, java.sql.Types.VARCHAR);
+            cst.execute();
+            nombre = cst.getString(4);
+            apellidos = cst.getString(5);
+            id_credito = cst.getInt(2);
+            limite = cst.getInt(3);
+            con.close();
+        } catch (SQLException ex) {
         }
     }
 
@@ -50,76 +98,32 @@ public class EditarCliente extends javax.swing.JFrame {
         return false;
     }
 
-    public void datos() {
-        String id;
-        id = JOptionPane.showInputDialog(null, "Digite el id del cliente que desea editar: ");
-        try {
-            while (!(id.length() == 9)) {
-                id = JOptionPane.showInputDialog(null, "La cedula debe tener 9 digitos vuelva a ingresarla: ");
-            }
-            if (!existe(id)) {
-                JOptionPane.showMessageDialog(null, "¡El cliente no existe!");
-                this.dispose();
-            } else {
-                llenar(id);
-                jTextField7.setText(c.getNombre());
-                jTextField5.setText(c.getApellido());
-                jTextField1.setText(c.getCorreo());
-                jTextField2.setText(c.getTelefono());
-            }
-        }catch(NullPointerException ex){
-            this.dispose();
-        } 
-    }
-
-    public void llenar(String id) {
-        try {
-            conectar();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("select * from Cliente where id_cliente='" + id + "'");
-            while (rs.next()) {
-                c.setId_cliente(rs.getString(1));
-                c.setNombre(rs.getString(2));
-                c.setApellido(rs.getString(3));
-                c.setCorreo(rs.getString(4));
-                c.setTelefono(rs.getString(5));
-                c.setId_credito(rs.getInt(6));
-            }
-            con.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
     public boolean editar() {
-        if ((jTextField7.getText().equals("")) || (jTextField5.getText().equals(""))
-                || (jTextField1.getText().equals("")) || (jTextField2.getText().equals(""))) {
-            JOptionPane.showMessageDialog(null, "¡Todos los campos deben estar llenos!");
+        try {
+            if (jTextField1.getText().equals("")) {
+                JOptionPane.showMessageDialog(null, "¡El limite no puede estar vacio!");
+                return false;
+            } else if ((Integer.parseInt(jTextField1.getText()) < 10000) || (Integer.parseInt(jTextField1.getText()) > 1000000)) {
+                JOptionPane.showMessageDialog(null, "El credito debe ser mayor a 10000 y menor a 1000000");
+                return false;
+            } else {
+                limite = Integer.parseInt(jTextField1.getText());
+                actualizar();
+                JOptionPane.showMessageDialog(null, "Credito actualizado");
+                return true;
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(null, "Formaro del limite no valido");
             return false;
-        }
-        if ((!jTextField1.getText().contains("@")) || (!jTextField1.getText().contains("."))) {
-            JOptionPane.showMessageDialog(null, "El correo tiene un formato no valido");
-            return false;
-        } else {
-            c.setNombre(jTextField7.getText());
-            c.setApellido(jTextField5.getText());
-            c.setCorreo(jTextField1.getText());
-            c.setTelefono(jTextField2.getText());
-            actualizar();
-            JOptionPane.showMessageDialog(null, "Datos actualizados");
-            return true;
         }
     }
 
     public void actualizar() {
         try {
             conectar();
-            CallableStatement cst = con.prepareCall("{call paquete_clientes.actualizar_cliente(?,?,?,?,?)}");
-            cst.setString(1, c.getId_cliente());
-            cst.setString(2, c.getNombre());
-            cst.setString(3, c.getApellido());
-            cst.setString(4, c.getCorreo());
-            cst.setString(5, c.getTelefono());
+            CallableStatement cst = con.prepareCall("{call paquete_credito.actualizar_credito(?,?)}");
+            cst.setInt(1, id_credito);
+            cst.setInt(2, limite);
             cst.execute();
             con.close();
         } catch (SQLException ex) {
@@ -127,23 +131,25 @@ public class EditarCliente extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jFileChooser1 = new javax.swing.JFileChooser();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         jTextField5 = new javax.swing.JTextField();
         jLabel10 = new javax.swing.JLabel();
         jTextField7 = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jTextField1 = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -151,13 +157,13 @@ public class EditarCliente extends javax.swing.JFrame {
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel1.setText("Editar Cliente");
+        jLabel1.setText("Editar Credito");
         jLabel1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
         jLabel6.setBackground(new java.awt.Color(1, 65, 92));
         jLabel6.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         jLabel6.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel6.setText("Apellidos:");
+        jLabel6.setText("Apellidos :");
 
         jTextField5.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jTextField5.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -169,11 +175,6 @@ public class EditarCliente extends javax.swing.JFrame {
 
         jTextField7.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jTextField7.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
-
-        jLabel2.setBackground(new java.awt.Color(1, 65, 92));
-        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
-        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel2.setText("Telefono:");
 
         jButton1.setBackground(new java.awt.Color(110, 111, 115));
         jButton1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
@@ -203,46 +204,40 @@ public class EditarCliente extends javax.swing.JFrame {
         jLabel4.setBackground(new java.awt.Color(1, 65, 92));
         jLabel4.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         jLabel4.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel4.setText("Correo:");
-
-        jTextField2.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        jTextField2.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        jLabel4.setText("Limite:");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGap(62, 62, 62)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(62, 62, 62)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                                 .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(51, 51, 51)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jTextField7, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(56, 56, 56)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jTextField5, javax.swing.GroupLayout.DEFAULT_SIZE, 185, Short.MAX_VALUE)
+                            .addComponent(jTextField7, javax.swing.GroupLayout.DEFAULT_SIZE, 185, Short.MAX_VALUE)
+                            .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 185, Short.MAX_VALUE)))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(204, 204, 204)
-                        .addComponent(jLabel1)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap(106, Short.MAX_VALUE)
-                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(80, 80, 80)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(111, 111, 111))
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 46, Short.MAX_VALUE)
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(32, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel1)
+                .addGap(122, 122, 122))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(25, 25, 25)
+                .addGap(35, 35, 35)
                 .addComponent(jLabel1)
                 .addGap(26, 26, 26)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -254,18 +249,13 @@ public class EditarCliente extends javax.swing.JFrame {
                     .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel4)
-                        .addGap(18, 18, 18)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel2)
-                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jLabel4)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(64, 64, 64)
+                .addGap(31, 31, 31)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(37, Short.MAX_VALUE))
+                .addContainerGap(34, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -309,21 +299,20 @@ public class EditarCliente extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(EditarCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(EditarCredito.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(EditarCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(EditarCredito.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(EditarCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(EditarCredito.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(EditarCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(EditarCredito.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new EditarCliente().setVisible(true);
+                new EditarCredito().setVisible(true);
             }
         });
     }
@@ -331,15 +320,12 @@ public class EditarCliente extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
-    private javax.swing.JFileChooser jFileChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField5;
     private javax.swing.JTextField jTextField7;
     // End of variables declaration//GEN-END:variables
