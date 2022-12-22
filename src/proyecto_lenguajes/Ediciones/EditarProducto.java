@@ -78,7 +78,6 @@ public class EditarProducto extends javax.swing.JFrame {
         String nombre = proveedor(p.getId_proveedor()) + " " + p.getModelo();
         jTextField7.setText(nombre);
         jTextField1.setText(String.valueOf(p.getPrecio()));
-        jSpinner1.setValue(p.getExistencias());
         String sucursal = sucursal(p.getId_sucursal());
         jComboBox2.setSelectedItem(sucursal);
         jTextField7.setEditable(false);
@@ -154,8 +153,6 @@ public class EditarProducto extends javax.swing.JFrame {
                 return false;
             } else {
                 p.setPrecio(Integer.parseInt(jTextField1.getText()));
-                int value = (Integer) jSpinner1.getValue();
-                p.setExistencias(value);
                 p.setId_sucursal(traer_sucursal());
                 actualizar();
                 JOptionPane.showMessageDialog(null, "Producto actualizado");
@@ -170,11 +167,10 @@ public class EditarProducto extends javax.swing.JFrame {
     public void actualizar() {
         try {
             conectar();
-            CallableStatement cst = con.prepareCall("{call paquete_producto.actualizar_producto(?,?,?,?)}");
+            CallableStatement cst = con.prepareCall("{call paquete_producto.actualizar_producto(?,?,?)}");
             cst.setString(1, p.getCodigo());
             cst.setInt(2, p.getPrecio());
-            cst.setInt(3, p.getExistencias());
-            cst.setInt(4, p.getId_sucursal());
+            cst.setInt(3, p.getId_sucursal());
             cst.execute();
         } catch (SQLException ex) {
             Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
@@ -213,8 +209,6 @@ public class EditarProducto extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
-        jLabel7 = new javax.swing.JLabel();
-        jSpinner1 = new javax.swing.JSpinner();
         jLabel9 = new javax.swing.JLabel();
         jComboBox2 = new javax.swing.JComboBox<>();
 
@@ -265,13 +259,6 @@ public class EditarProducto extends javax.swing.JFrame {
             }
         });
 
-        jLabel7.setBackground(new java.awt.Color(110, 111, 115));
-        jLabel7.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
-        jLabel7.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel7.setText("Existencias:");
-
-        jSpinner1.setModel(new javax.swing.SpinnerNumberModel(0, null, 50000, 1));
-
         jLabel9.setBackground(new java.awt.Color(110, 111, 115));
         jLabel9.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         jLabel9.setForeground(new java.awt.Color(255, 255, 255));
@@ -296,20 +283,18 @@ public class EditarProducto extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(55, 55, 55)
+                        .addGap(52, 52, 52)
                         .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(0, 83, Short.MAX_VALUE)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel10)
                             .addComponent(jLabel4)
-                            .addComponent(jLabel7)
                             .addComponent(jLabel9))
-                        .addGap(38, 38, 38)
+                        .addGap(61, 61, 61)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jTextField7, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addGap(55, 55, 55))
         );
@@ -328,17 +313,13 @@ public class EditarProducto extends javax.swing.JFrame {
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel7)
-                    .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel9))
-                .addGap(40, 40, 40)
+                    .addComponent(jLabel9)
+                    .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(34, 34, 34)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(28, Short.MAX_VALUE))
+                .addContainerGap(20, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -411,10 +392,8 @@ public class EditarProducto extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JSpinner jSpinner1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField7;
     // End of variables declaration//GEN-END:variables

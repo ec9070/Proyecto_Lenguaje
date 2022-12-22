@@ -79,7 +79,40 @@ primary key(codigo),
 foreign key(id_proveedor) references proveedor(id_proveedor),
 foreign key(id_sucursal) references sucursal(id_sucursal));
 
+create table factura(
+num_factura int not null,
+fecha date not null,
+id_cliente varchar(9) not null,
+total int not null,
+primary key(num_factura),
+foreign key(id_cliente)references Cliente(id_cliente));
 
+create table detalle_factura(
+num_linea int not null,
+num_factura int not null,
+codigo varchar(5) not null,
+cantidad int not null,
+total_linea int not null,
+primary key(num_linea,num_factura),
+foreign key(num_factura) references factura(num_factura));
+
+create table pedidos(
+num_pedido int not null,
+fecha date not null,
+codigo varchar(5) not null,
+unidades int not null,
+primary key (num_pedido),
+foreign key(codigo) references producto(codigo));
+
+create table mantenimiento(
+num_mantenimiento int not null,
+fecha_ingreso date not null,
+descripcion varchar (50) not null,
+id_cliente varchar(9) not null,
+total int not null,
+fecha_salida date not null,
+primary key(num_mantenimiento),
+foreign key (id_cliente) references cliente(id_cliente));
 
 /************************************************* COMIENZAN SEQUENCIAS *****************************************/
 --Sequencia para la tabla credito
@@ -104,6 +137,21 @@ increment by 1;
 
 --Sequencia para proveedores
 create sequence proveedores
+start with 1
+increment by 1;
+
+--Sequencia para facturas
+create sequence facturas
+start with 1
+increment by 1;
+
+--Sequencia para pedidos
+create sequence pedidos_s
+start with 1
+increment by 1;
+
+--Sequencia para mantenimientos
+create sequence mant_s
 start with 1
 increment by 1;
 
@@ -152,6 +200,28 @@ begin
         set cant_empleados=cant_empleados-1
         where id_sucursal=:old.id_sucursal;
     end if;
+end;
+
+create or replace trigger accion_factura
+after insert on detalle_factura
+for each row
+begin
+    update factura
+    set total=total+:new.total_linea
+    where num_factura=:new.num_factura;
+    update producto
+    set existencias=existencias-:new.cantidad
+    where codigo=:new.codigo;
+end;
+
+
+create or replace trigger accion_pedido
+after insert on pedidos
+for each row
+begin
+    update producto
+    set existencias=existencias+:new.unidades
+    where codigo=:new.codigo;
 end;
 
 /************************************************* FIN TRIGGERS *****************************************/
@@ -647,7 +717,8 @@ function repetido_producto(codigo_p Producto.codigo%type) return number;
 procedure insertar_producto(codigo_p Producto.codigo%type,m Producto.modelo%type,id_p Producto.id_proveedor%type,p Producto.precio%type,e Producto.existencias%type,
 id_s Producto.id_sucursal%type);
 function lista_productos return varchar;
-procedure actualizar_producto(c Producto.codigo%type,p Producto.precio%type,e Producto.existencias%type,id_s Producto.id_sucursal%type);
+procedure actualizar_producto(c Producto.codigo%type,p Producto.precio%type,id_s Producto.id_sucursal%type);
+function existe_productos return number;
 end;
 
 create or replace package body paquete_producto
@@ -698,18 +769,190 @@ begin
     return s;
 end lista_productos;
 
-procedure actualizar_producto(c Producto.codigo%type,p Producto.precio%type,e Producto.existencias%type,id_s Producto.id_sucursal%type)
+procedure actualizar_producto(c Producto.codigo%type,p Producto.precio%type,id_s Producto.id_sucursal%type)
 is
 begin
     update producto
-    set precio=p,existencias=e,id_sucursal=id_s
+    set precio=p,id_sucursal=id_s
     where codigo=c;
     commit;
 end actualizar_producto;
 
+function existe_productos return number
+is
+existe int;
+id_p Producto.codigo%type;
+cursor lista is
+select codigo
+from producto;
+begin
+    open lista;
+    loop
+        fetch lista into id_p;
+        exit when lista%NOTFOUND; 
+    end loop;
+    if lista%ROWCOUNT>0 then
+        existe:=1;
+    else
+        existe:=0;
+    end if;
+    close lista;
+    return existe;
+end existe_productos;
+
 end paquete_producto;
 
 /************************************************* FIN PAQUETE PRODUCTO*****************************************/
+
+/************************************************* COMIENZA PAQUETE FACTURA*****************************************/
+
+create or replace package paquete_factura
+as
+procedure insertar_factura(id_c Factura.id_cliente%type,n out Factura.num_factura%type);
+function nombre_producto(c Producto.codigo%type) return varchar;
+procedure insertar_linea_factura(n_l detalle_factura.num_linea%type,num_fact detalle_factura.num_factura%type,c detalle_factura.codigo%type,cant detalle_factura.cantidad%type,
+total_l detalle_factura.total_linea%type);
+end;
+
+create or replace package body paquete_factura
+as
+procedure insertar_factura(id_c Factura.id_cliente%type,n out Factura.num_factura%type)
+is
+begin
+    insert into factura(num_factura,fecha,id_cliente,total)
+    values(facturas.nextval,sysdate,id_c,0);
+    select facturas.currval into n from dual;
+end insertar_factura;
+
+function nombre_producto(c Producto.codigo%type) return varchar
+is
+nombre varchar(100);
+begin
+    select nom_proveedor||' '||modelo into nombre
+    from proveedor,producto
+    where producto.codigo=c and producto.id_proveedor=proveedor.id_proveedor;
+    return nombre;
+end nombre_producto;
+
+procedure insertar_linea_factura(n_l detalle_factura.num_linea%type,num_fact detalle_factura.num_factura%type,c detalle_factura.codigo%type,cant detalle_factura.cantidad%type,
+total_l detalle_factura.total_linea%type)
+is
+begin
+    insert into detalle_factura(num_linea,num_factura,codigo,cantidad,total_linea)
+    values(n_l,num_fact,c,cant,total_l);
+    commit;
+end insertar_linea_factura;
+
+end paquete_factura;
+
+/************************************************* FIN PAQUETE FACTURA*****************************************/
+
+/************************************************* EMPIEZA PAQUETE PEDIDO*****************************************/
+
+create or replace package paquete_pedido
+as
+procedure insertar_pedido(c pedidos.codigo%type,u pedidos.unidades%type);
+function lista_pedidos return varchar;
+function existe_pedido (id_p Pedidos.num_pedido%type) return number;
+end;
+
+create or replace package body paquete_pedido
+as
+procedure insertar_pedido(c pedidos.codigo%type,u pedidos.unidades%type)
+is
+begin
+    insert into pedidos(num_pedido,fecha,codigo,unidades)
+    values(pedidos_s.nextval,sysdate,c,u);
+    commit;
+end insertar_pedido;
+
+function lista_pedidos return varchar
+is
+s varchar(500):='';
+v_id Pedidos.num_pedido%type;
+v_nombre varchar(100);
+v_fecha Pedidos.fecha%type;
+cursor lista is 
+select num_pedido,fecha,nom_proveedor||' '||modelo
+from Pedidos,Producto,Proveedor
+where Pedidos.codigo=Producto.codigo and Producto.id_proveedor=Proveedor.id_proveedor;
+begin
+    open lista;
+    loop
+        fetch lista into v_id,v_fecha,v_nombre;
+        exit when lista%NOTFOUND;
+        s:=s||v_id||'. '||v_fecha||' '||v_nombre||Chr(10);
+    end loop;
+    close lista;
+    return s;
+end lista_pedidos;
+
+function existe_pedido (id_p Pedidos.num_pedido%type) return number
+is
+existe int;
+id_2 Pedidos.num_pedido%type;
+begin
+    select num_pedido into id_2
+    from Pedidos
+    where num_pedido=id_p;
+    existe:=1;
+    return existe;
+    EXCEPTION
+    WHEN  NO_DATA_FOUND THEN
+        existe:=0;
+        return existe;
+end existe_pedido;
+
+end paquete_pedido;
+
+/************************************************* FIN PAQUETE PEDIDO*****************************************/
+
+/************************************************* EMPIEZA PAQUETE MANTANIMIENTO*****************************************/
+
+create or replace package paquete_mantenimiento
+as
+procedure insertar_mant(fecha_i varchar,des mantenimiento.descripcion%type,id_c mantenimiento.id_cliente%type,
+t mantenimiento.total%type,fecha_s varchar);
+function existe_mant(id_c mantenimiento.id_cliente%type) return number;
+end;
+
+create or replace package body paquete_mantenimiento
+as
+procedure insertar_mant(fecha_i varchar,des mantenimiento.descripcion%type,id_c mantenimiento.id_cliente%type,
+t mantenimiento.total%type,fecha_s varchar)
+is
+begin
+    insert into mantenimiento(num_mantenimiento,fecha_ingreso,descripcion,id_cliente,total,fecha_salida)
+    values(mant_s.nextval,to_date(fecha_i,'DD/MM/YYYY'),des,id_c,t,to_date(fecha_s,'DD/MM/YYYY'));
+    commit;
+end insertar_mant;
+
+function existe_mant(id_c mantenimiento.id_cliente%type) return number
+is
+existe int;
+id_p Mantenimiento.num_mantenimiento%type;
+cursor lista is
+select num_mantenimiento
+from mantenimiento
+where id_cliente=id_c;
+begin
+    open lista;
+    loop
+        fetch lista into id_p;
+        exit when lista%NOTFOUND; 
+    end loop;
+    if lista%ROWCOUNT>0 then
+        existe:=1;
+    else
+        existe:=0;
+    end if;
+    close lista;
+    return existe;
+end existe_mant;
+
+end paquete_mantenimiento;
+
+/************************************************* FIN PAQUETE MANTENIMINETO*****************************************/
 
 /************ Momentanio ****************/
 select * from credito;
@@ -726,7 +969,15 @@ select * from proveedor;
 
 select * from producto;
 
-
-
 select * from sucursal;
+
+select * from factura;
+
+select * from detalle_factura;
+
+delete from factura;
+
+select * from pedidos;
+
+select * from mantenimiento;
 
