@@ -186,22 +186,18 @@ public class Menu extends javax.swing.JFrame {
                     rs.next();
                     id = rs.getInt(1);
                     con.close();
-                    if (id == 0) {
-                        JOptionPane.showMessageDialog(null, "El puesto no existe");
-                    } else {
-                        try {
-                            conectar();
-                            st = con.createStatement();
-                            st.executeQuery("delete from Puesto where id_puesto=" + id);
-                            st.executeQuery("commit");
-                            con.close();
-                            JOptionPane.showMessageDialog(null, "¡Puesto eliminado!");
-                        } catch (SQLException ex) {
-                            JOptionPane.showMessageDialog(null, "Hay referencias al puesto en otras tablas eliminelas primero");
-                        }
+                    try {
+                        conectar();
+                        st = con.createStatement();
+                        st.executeQuery("delete from Puesto where id_puesto=" + id);
+                        st.executeQuery("commit");
+                        con.close();
+                        JOptionPane.showMessageDialog(null, "¡Puesto eliminado!");
+                    } catch (SQLException ex) {
+                        JOptionPane.showMessageDialog(null, "Hay referencias al puesto en otras tablas eliminelas primero");
                     }
                 } catch (SQLException ex) {
-                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(null, "El puesto no existe");
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "No hay puestos");
@@ -239,22 +235,18 @@ public class Menu extends javax.swing.JFrame {
                     rs.next();
                     id = rs.getInt(1);
                     con.close();
-                    if (id == 0) {
-                        JOptionPane.showMessageDialog(null, "la sucursal no existe");
-                    } else {
-                        try {
-                            conectar();
-                            st = con.createStatement();
-                            st.executeQuery("delete from sucursal where id_sucursal=" + id);
-                            st.executeQuery("commit");
-                            con.close();
-                            JOptionPane.showMessageDialog(null, "¡Sucursal eliminado!");
-                        } catch (SQLException ex) {
-                            JOptionPane.showMessageDialog(null, "Hay referencias en otras tablas eliminelas primero");
-                        }
+                    try {
+                        conectar();
+                        st = con.createStatement();
+                        st.executeQuery("delete from sucursal where id_sucursal=" + id);
+                        st.executeQuery("commit");
+                        con.close();
+                        JOptionPane.showMessageDialog(null, "¡Sucursal eliminado!");
+                    } catch (SQLException ex) {
+                        JOptionPane.showMessageDialog(null, "Hay referencias en otras tablas eliminelas primero");
                     }
                 } catch (SQLException ex) {
-                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(null, "La sucursal no existe");
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "No hay sucursales");
@@ -401,22 +393,18 @@ public class Menu extends javax.swing.JFrame {
                     rs.next();
                     opcion = rs.getInt(1);
                     con.close();
-                    if (opcion == 0) {
-                        JOptionPane.showMessageDialog(null, "El proveedor no existe");
-                    } else {
-                        try {
-                            conectar();
-                            st = con.createStatement();
-                            st.executeQuery("delete from Proveedor where id_proveedor=" + opcion);
-                            st.executeQuery("commit");
-                            con.close();
-                            JOptionPane.showMessageDialog(null, "¡Proveedor eliminado!");
-                        } catch (SQLException ex) {
-                            JOptionPane.showMessageDialog(null, "Hay productos a nombre de este proveedor");
-                        }
+                    try {
+                        conectar();
+                        st = con.createStatement();
+                        st.executeQuery("delete from Proveedor where id_proveedor=" + opcion);
+                        st.executeQuery("commit");
+                        con.close();
+                        JOptionPane.showMessageDialog(null, "¡Proveedor eliminado!");
+                    } catch (SQLException ex) {
+                        JOptionPane.showMessageDialog(null, "Hay productos a nombre de este proveedor");
                     }
                 } catch (SQLException ex) {
-                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(null, "El proveedor no existe");
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "No hay proveedores");
@@ -669,6 +657,8 @@ public class Menu extends javax.swing.JFrame {
                         } catch (SQLException ex) {
                             Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
                         }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "El pedido no existe");
                     }
                 } catch (NumberFormatException ex) {
                 }
@@ -800,6 +790,172 @@ public class Menu extends javax.swing.JFrame {
         return false;
     }
 
+    public void buscar_factura() {
+        String id;
+        String detalles = "";
+        String s;
+        int opcion;
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        String fecha_f;
+        int total;
+        id = JOptionPane.showInputDialog(null, "Digite la cedula del cliente para ver sus facturas: ");
+        try {
+            while (!(id.length() == 9)) {
+                id = JOptionPane.showInputDialog(null, "La cedula debe tener 9 digitos vuelva a ingresarla: ");
+            }
+            if (!(existe(id))) {
+                JOptionPane.showMessageDialog(null, "¡El cliente no existe!");
+            } else {
+                if (existe_fact(id)) {
+                    s = lista_fact(id);
+                    try {
+                        opcion = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de factura que desea consultar: "));
+                        try {
+                            conectar();
+                            Statement st = con.createStatement();
+                            ResultSet rs = st.executeQuery("select * from factura where num_factura=" + opcion + " and id_cliente='" + id + "'");
+                            rs.next();
+                            opcion = rs.getInt(1);
+                            fecha_f = dateFormat.format(rs.getDate(2));
+                            id = rs.getString(3);
+                            total = rs.getInt(4);
+                            con.close();
+                            if (opcion == 0) {
+                                JOptionPane.showMessageDialog(null, "Factura no existe");
+                            } else {
+                                try {
+                                    conectar();
+                                    st = con.createStatement();
+                                    rs = st.executeQuery("select * from detalle_factura where num_factura=" + opcion);
+                                    while (rs.next()) {
+                                        detalles = detalles + rs.getInt(4) + " " + traer_nombre(rs.getString(3)) + "..... " + rs.getInt(5) + "\n";
+                                    }
+                                    con.close();
+                                } catch (SQLException ex) {
+                                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                                llenar(opcion, fecha_f, id, detalles, total);
+                            }
+                        } catch (SQLException ex) {
+                            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    } catch (NumberFormatException ex) {
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "No existen facturas");
+                }
+            }
+        } catch (NullPointerException ex) {
+        }
+    }
+
+    public void llenar(int numero, String fecha, String id, String detalles, int total) {
+        String nombre = traer_cliente(id);
+        String s = "Numero: " + numero + "\nFecha: " + fecha + "\nCedula: " + id + "\nCliente:" + nombre + "\n" + detalles + "Total: " + total;
+        JOptionPane.showMessageDialog(null, "Factura\n" + s);
+    }
+
+    public String traer_cliente(String id) {
+        String nombre = "";
+        try {
+            conectar();
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery("select nombre||' '||apellidos from cliente where id_cliente='" + id + "'");
+            rs.next();
+            nombre = rs.getString(1);
+            con.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return nombre;
+    }
+
+    public String lista_fact(String id) {
+        String s = "";
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        try {
+            conectar();
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery("select num_factura,fecha,total from factura where id_cliente='" + id + "'");
+            while (rs.next()) {
+                s = s + rs.getInt(1) + ". " + dateFormat.format(rs.getDate(2)) + ", " + rs.getInt(3) + "\n";
+            }
+            con.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return s;
+    }
+
+    public boolean existe_fact(String id) {
+        int aux = 0;
+        try {
+            conectar();
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery("select paquete_factura.existe_fact('" + id + "') from dual");
+            while (rs.next()) {
+                aux = rs.getInt(1);
+            }
+            con.close();
+            if (aux == 1) {
+                return true;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public void eliminar_factura() {
+        String id;
+        String s;
+        int opcion;
+        id = JOptionPane.showInputDialog(null, "Digite la cedula del cliente para ver sus facturas: ");
+        try {
+            while (!(id.length() == 9)) {
+                id = JOptionPane.showInputDialog(null, "La cedula debe tener 9 digitos vuelva a ingresarla: ");
+            }
+            if (!(existe(id))) {
+                JOptionPane.showMessageDialog(null, "¡El cliente no existe!");
+            } else {
+                if (existe_fact(id)) {
+                    s = lista_fact(id);
+                    try {
+                        opcion = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de factura que desea consultar: "));
+                        try {
+                            conectar();
+                            Statement st = con.createStatement();
+                            ResultSet rs = st.executeQuery("select num_factura from factura where num_factura=" + opcion + " and id_cliente='" + id + "'");
+                            rs.next();
+                            opcion = rs.getInt(1);
+                            con.close();
+                            if (opcion == 0) {
+                                JOptionPane.showMessageDialog(null, "Factura no existe");
+                            } else {
+                                try {
+                                    conectar();
+                                    st = con.createStatement();
+                                    st.executeQuery("delete from detalle_factura where num_factura=" + opcion);
+                                    st.executeQuery("delete from factura where num_factura=" + opcion);
+                                    con.close();
+                                    JOptionPane.showMessageDialog(null, "¡Factura eliminado!");
+                                } catch (SQLException ex) {
+                                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                            }
+                        } catch (SQLException ex) {
+                            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    } catch (NumberFormatException ex) {
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "No existen facturas");
+                }
+            }
+        } catch (NullPointerException ex) {
+        }
+    }
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -848,6 +1004,8 @@ public class Menu extends javax.swing.JFrame {
         jMenu10 = new javax.swing.JMenu();
         jMenu11 = new javax.swing.JMenu();
         jMenuItem32 = new javax.swing.JMenuItem();
+        jMenuItem36 = new javax.swing.JMenuItem();
+        jMenuItem37 = new javax.swing.JMenuItem();
         jMenu12 = new javax.swing.JMenu();
         jMenuItem33 = new javax.swing.JMenuItem();
         jMenuItem34 = new javax.swing.JMenuItem();
@@ -1156,6 +1314,22 @@ public class Menu extends javax.swing.JFrame {
             }
         });
         jMenu11.add(jMenuItem32);
+
+        jMenuItem36.setText("Consultar Factura");
+        jMenuItem36.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem36ActionPerformed(evt);
+            }
+        });
+        jMenu11.add(jMenuItem36);
+
+        jMenuItem37.setText("Eliminar Factura");
+        jMenuItem37.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem37ActionPerformed(evt);
+            }
+        });
+        jMenu11.add(jMenuItem37);
 
         jMenuBar1.add(jMenu11);
 
@@ -1485,6 +1659,14 @@ public class Menu extends javax.swing.JFrame {
         eliminar_mant();
     }//GEN-LAST:event_jMenuItem40ActionPerformed
 
+    private void jMenuItem36ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem36ActionPerformed
+        buscar_factura();
+    }//GEN-LAST:event_jMenuItem36ActionPerformed
+
+    private void jMenuItem37ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem37ActionPerformed
+        eliminar_factura();
+    }//GEN-LAST:event_jMenuItem37ActionPerformed
+
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -1564,6 +1746,8 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem33;
     private javax.swing.JMenuItem jMenuItem34;
     private javax.swing.JMenuItem jMenuItem35;
+    private javax.swing.JMenuItem jMenuItem36;
+    private javax.swing.JMenuItem jMenuItem37;
     private javax.swing.JMenuItem jMenuItem38;
     private javax.swing.JMenuItem jMenuItem39;
     private javax.swing.JMenuItem jMenuItem4;

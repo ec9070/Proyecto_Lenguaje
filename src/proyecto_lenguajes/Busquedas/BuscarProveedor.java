@@ -49,14 +49,10 @@ public class BuscarProveedor extends javax.swing.JFrame {
                     p.setTelefono(rs.getString(3));
                     p.setCorreo(rs.getString(4));
                     con.close();
-                    if (p.getId_proveedor() == 0) {
-                        JOptionPane.showMessageDialog(null, "El proveedor no existe");
-                        this.dispose();
-                    } else {
-                        llenar(p);
-                    }
+                    llenar(p);
                 } catch (SQLException ex) {
-                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(null, "El proveedor no existe");
+                    this.dispose();
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "No hay proveedores");
@@ -66,8 +62,8 @@ public class BuscarProveedor extends javax.swing.JFrame {
             this.dispose();
         }
     }
-    
-    public void llenar(Proveedor p){
+
+    public void llenar(Proveedor p) {
         jSpinner1.setValue(p.getId_proveedor());
         jTextField7.setText(p.getNom_proveedor());
         jTextField5.setText(p.getTelefono());

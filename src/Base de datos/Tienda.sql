@@ -114,7 +114,7 @@ fecha_salida date not null,
 primary key(num_mantenimiento),
 foreign key (id_cliente) references cliente(id_cliente));
 
-/************************************************* COMIENZAN SEQUENCIAS *****************************************/
+/************************************************* COMIENZAN SEQUENCIAS *****************************************/ --TOTAL 8
 --Sequencia para la tabla credito
 create sequence creditos
 start with 1
@@ -155,11 +155,10 @@ create sequence mant_s
 start with 1
 increment by 1;
 
-
 /************************************************* FIN SEQUENCIAS *****************************************/
 
 
-/************************************************* COMIENZAN TRIGGERS *****************************************/
+/************************************************* COMIENZAN TRIGGERS *****************************************/ --TOTAL 4
 --Trigger que controla el credito
 create or replace trigger accion_credito
 after insert or delete on credito
@@ -177,7 +176,7 @@ begin
     end if;
 end;
 
---Trigger que controla el la cant_empleados
+--Trigger que controla la cant_empleados
 create or replace trigger accion_empleado
 after insert or update or delete on empleado
 for each row
@@ -202,6 +201,7 @@ begin
     end if;
 end;
 
+--Trigger para el total y existencias de la factura y productos
 create or replace trigger accion_factura
 after insert on detalle_factura
 for each row
@@ -214,7 +214,7 @@ begin
     where codigo=:new.codigo;
 end;
 
-
+--Trigger que controla las unidades del producto
 create or replace trigger accion_pedido
 after insert on pedidos
 for each row
@@ -227,7 +227,7 @@ end;
 /************************************************* FIN TRIGGERS *****************************************/
 
 
-/************************************************* COMIENZA PAQUETE CLIENTES *****************************************/
+/************************************************* COMIENZA PAQUETE CLIENTES *****************************************/ -- CONTIENE FUNCION Y PROCEDIMIENTOS
 
 create or replace package paquete_clientes
 as
@@ -280,7 +280,7 @@ end paquete_clientes;
 
 
 
-/************************************************* COMIENZA PAQUETE CREDITO *****************************************/
+/************************************************* COMIENZA PAQUETE CREDITO *****************************************/ --CONTIENE PROCEDIMIENTOS
 
 create or replace package paquete_credito
 as
@@ -322,7 +322,7 @@ end paquete_credito;
 /************************************************* FIN DE PAQUETE CREDITO *****************************************/
 
 
-/************************************************* COMIENZA PAQUETE PUESTO *****************************************/
+/************************************************* COMIENZA PAQUETE PUESTO *****************************************/ --CONTIENE FUNCION,PROCEDIMIENTOS Y FUNCION CON CURSOR
 
 create or replace package paquete_puesto
 as
@@ -395,7 +395,7 @@ end paquete_puesto;
 /************************************************* FIN PAQUETE PUESTO *****************************************/
 
 
-/************************************************* COMIENZA PAQUETE SUCURSAL *****************************************/
+/************************************************* COMIENZA PAQUETE SUCURSAL *****************************************/ --CONTIENE FUNCION,PROCEDIMIENTOS Y FUNCION CON CURSOR
 
 create or replace package paquete_sucursal
 as
@@ -548,7 +548,7 @@ end paquete_sucursal;
 /************************************************* FIN PAQUETE SUCURSAL *****************************************/
 
 
-/************************************************* COMIENZA PAQUETE EMPLEADO *****************************************/
+/************************************************* COMIENZA PAQUETE EMPLEADO *****************************************/ --CONTIENE FUNCION Y PROCEDIMIENTOS
 
 create or replace package paquete_empleado
 as
@@ -600,7 +600,7 @@ end paquete_empleado;
 
 /************************************************* FIN PAQUETE EMPLEADO *****************************************/
 
-/************************************************* COMIENZA PAQUETE PAGO*****************************************/
+/************************************************* COMIENZA PAQUETE PAGO*****************************************/ --CONTIENE FUNCION Y PROCEDIMIENTOS
 
 create or replace package paquete_pago
 as
@@ -638,7 +638,7 @@ end paquete_pago;
 
 /************************************************* FIN PAQUETE PAGO*****************************************/
 
-/************************************************* COMIENZA PAQUETE PROVEEDOR*****************************************/
+/************************************************* COMIENZA PAQUETE PROVEEDOR*****************************************/ --CONTIENE FUNCION,PROCEDIMIENTOS Y FUNCION CON CURSOR
 
 create or replace package paquete_proveedor
 as
@@ -709,7 +709,7 @@ end paquete_proveedor;
 
 /************************************************* FIN PAQUETE PROVEEDOR*****************************************/
 
-/************************************************* COMIENZA PAQUETE PRODUCTO*****************************************/
+/************************************************* COMIENZA PAQUETE PRODUCTO*****************************************/ --CONTIENE FUNCION,PROCEDIMIENTOS Y FUNCION CON CURSOR
 
 create or replace package paquete_producto
 as
@@ -804,7 +804,7 @@ end paquete_producto;
 
 /************************************************* FIN PAQUETE PRODUCTO*****************************************/
 
-/************************************************* COMIENZA PAQUETE FACTURA*****************************************/
+/************************************************* COMIENZA PAQUETE FACTURA*****************************************/ --CONTIENE FUNCION,PROCEDIMIENTOS Y FUNCION CON CURSOR
 
 create or replace package paquete_factura
 as
@@ -812,6 +812,7 @@ procedure insertar_factura(id_c Factura.id_cliente%type,n out Factura.num_factur
 function nombre_producto(c Producto.codigo%type) return varchar;
 procedure insertar_linea_factura(n_l detalle_factura.num_linea%type,num_fact detalle_factura.num_factura%type,c detalle_factura.codigo%type,cant detalle_factura.cantidad%type,
 total_l detalle_factura.total_linea%type);
+function existe_fact(id_c factura.id_cliente%type) return number;
 end;
 
 create or replace package body paquete_factura
@@ -843,11 +844,34 @@ begin
     commit;
 end insertar_linea_factura;
 
+function existe_fact(id_c factura.id_cliente%type) return number
+is
+existe int;
+id_p Factura.num_factura%type;
+cursor lista is
+select num_factura
+from factura
+where id_cliente=id_c;
+begin
+    open lista;
+    loop
+        fetch lista into id_p;
+        exit when lista%NOTFOUND; 
+    end loop;
+    if lista%ROWCOUNT>0 then
+        existe:=1;
+    else
+        existe:=0;
+    end if;
+    close lista;
+    return existe;
+end existe_fact;
+
 end paquete_factura;
 
 /************************************************* FIN PAQUETE FACTURA*****************************************/
 
-/************************************************* EMPIEZA PAQUETE PEDIDO*****************************************/
+/************************************************* EMPIEZA PAQUETE PEDIDO*****************************************/ --CONTIENE FUNCION,PROCEDIMIENTOS Y FUNCION CON CURSOR
 
 create or replace package paquete_pedido
 as
@@ -907,7 +931,7 @@ end paquete_pedido;
 
 /************************************************* FIN PAQUETE PEDIDO*****************************************/
 
-/************************************************* EMPIEZA PAQUETE MANTANIMIENTO*****************************************/
+/************************************************* EMPIEZA PAQUETE MANTANIMIENTO*****************************************/ --CONTIENE FUNCION,PROCEDIMIENTOS Y FUNCION CON CURSOR
 
 create or replace package paquete_mantenimiento
 as
@@ -953,31 +977,3 @@ end existe_mant;
 end paquete_mantenimiento;
 
 /************************************************* FIN PAQUETE MANTENIMINETO*****************************************/
-
-/************ Momentanio ****************/
-select * from credito;
-
-select * from cliente;
-
-select * from puesto;
-
-select * from empleado;
-
-select * from pago_salario;
-
-select * from proveedor;
-
-select * from producto;
-
-select * from sucursal;
-
-select * from factura;
-
-select * from detalle_factura;
-
-delete from factura;
-
-select * from pedidos;
-
-select * from mantenimiento;
-

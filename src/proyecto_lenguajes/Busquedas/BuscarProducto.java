@@ -55,14 +55,10 @@ public class BuscarProducto extends javax.swing.JFrame {
                         p.setExistencias(rs.getInt(5));
                         p.setId_sucursal(rs.getInt(6));
                         con.close();
-                        if (p.getId_proveedor() == 0) {
-                            JOptionPane.showMessageDialog(null, "El producto no existe");
-                            this.dispose();
-                        } else {
-                            llenar(p);
-                        }
+                        llenar(p);
                     } catch (SQLException ex) {
-                        Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                        JOptionPane.showMessageDialog(null, "El producto no existe");
+                        this.dispose();
                     }
                 } catch (NullPointerException ex) {
                     this.dispose();

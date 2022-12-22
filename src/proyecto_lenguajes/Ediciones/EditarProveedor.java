@@ -48,14 +48,10 @@ public class EditarProveedor extends javax.swing.JFrame {
                     p.setTelefono(rs.getString(3));
                     p.setCorreo(rs.getString(4));
                     con.close();
-                    if (p.getId_proveedor() == 0) {
-                        JOptionPane.showMessageDialog(null, "El proveedor no existe");
-                        this.dispose();
-                    } else {
-                        llenar();
-                    }
+                    llenar();
                 } catch (SQLException ex) {
-                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(null, "El proveedor no existe");
+                    this.dispose();
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "No hay proveedores");
@@ -106,7 +102,7 @@ public class EditarProveedor extends javax.swing.JFrame {
             return true;
         }
     }
-    
+
     public void actualizar() {
         try {
             conectar();

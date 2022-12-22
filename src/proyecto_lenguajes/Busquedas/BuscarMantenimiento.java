@@ -51,29 +51,27 @@ public class BuscarMantenimiento extends javax.swing.JFrame {
                 if (existe_mant(id)) {
                     s = lista_mant(id);
                     try {
-                        if (!(s.equals(""))) {
-                            opcion = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de mantenimiento que desea consultar: "));
-                            try {
-                                conectar();
-                                Statement st = con.createStatement();
-                                ResultSet rs = st.executeQuery("select * from mantenimiento where num_mantenimiento=" + opcion + " and id_cliente='" + id + "'");
-                                rs.next();
-                                m.setNum_mantenimiento(rs.getInt(1));
-                                m.setFecha_ingreso(dateFormat.format(rs.getDate(2)));
-                                m.setDescripcion(rs.getString(3));
-                                m.setId_cliente(rs.getString(4));
-                                m.setTotal(rs.getInt(5));
-                                m.setFecha_salida(dateFormat.format(rs.getDate(6)));
-                                con.close();
-                                if (m.getNum_mantenimiento() == 0) {
-                                    JOptionPane.showMessageDialog(null, "El mantenimiento no existe");
-                                    this.dispose();
-                                } else {
-                                    llenar(m);
-                                }
-                            } catch (SQLException ex) {
-                                Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                        opcion = Integer.parseInt(JOptionPane.showInputDialog(null, s + "Digite el numero de mantenimiento que desea consultar: "));
+                        try {
+                            conectar();
+                            Statement st = con.createStatement();
+                            ResultSet rs = st.executeQuery("select * from mantenimiento where num_mantenimiento=" + opcion + " and id_cliente='" + id + "'");
+                            rs.next();
+                            m.setNum_mantenimiento(rs.getInt(1));
+                            m.setFecha_ingreso(dateFormat.format(rs.getDate(2)));
+                            m.setDescripcion(rs.getString(3));
+                            m.setId_cliente(rs.getString(4));
+                            m.setTotal(rs.getInt(5));
+                            m.setFecha_salida(dateFormat.format(rs.getDate(6)));
+                            con.close();
+                            if (m.getNum_mantenimiento() == 0) {
+                                JOptionPane.showMessageDialog(null, "El mantenimiento no existe");
+                                this.dispose();
+                            } else {
+                                llenar(m);
                             }
+                        } catch (SQLException ex) {
+                            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     } catch (NumberFormatException ex) {
                         this.dispose();

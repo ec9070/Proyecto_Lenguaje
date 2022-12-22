@@ -122,7 +122,6 @@ public class EditarSucursal extends javax.swing.JFrame {
                 return true;
             }
         } catch (SQLException ex) {
-            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
     }
@@ -150,16 +149,26 @@ public class EditarSucursal extends javax.swing.JFrame {
             return false;
         } else {
             nombre = jTextField7.getText();
-            if (!(existe_sucursal(nombre))) {
+            if (nombre.equals(su.getNombre_sucursal())) {
                 su.setNombre_sucursal(nombre);
                 su.setDireccion(jTextArea1.getText());
                 su.setTelefono(jTextField5.getText());
                 provincia = String.valueOf(jComboBox1.getSelectedItem());
                 actualizar(provincia);
-                JOptionPane.showMessageDialog(null, "Puesto actualizado");
+                JOptionPane.showMessageDialog(null, "Sucursal actualizada");
                 return true;
             } else {
-                JOptionPane.showMessageDialog(null, "La sucursal ya existe");
+                if (!(existe_sucursal(nombre))) {
+                    su.setNombre_sucursal(nombre);
+                    su.setDireccion(jTextArea1.getText());
+                    su.setTelefono(jTextField5.getText());
+                    provincia = String.valueOf(jComboBox1.getSelectedItem());
+                    actualizar(provincia);
+                    JOptionPane.showMessageDialog(null, "Sucursal actualizada");
+                    return true;
+                } else {
+                    JOptionPane.showMessageDialog(null, "La sucursal ya existe");
+                }
             }
         }
         return false;

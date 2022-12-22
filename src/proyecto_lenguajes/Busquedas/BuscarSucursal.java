@@ -119,7 +119,6 @@ public class BuscarSucursal extends javax.swing.JFrame {
                 return true;
             }
         } catch (SQLException ex) {
-            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
     }
