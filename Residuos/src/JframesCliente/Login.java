@@ -22,7 +22,7 @@ public class Login extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         setTitle("Inicio de sesión");
         setResizable(false);
-        Image icono = new ImageIcon(getClass().getResource("/iconosCliente/clientes.png")).getImage();
+        Image icono = new ImageIcon(getClass().getResource("/IconosCliente/clientes.png")).getImage();
         setIconImage(icono);
         leer();
     }
@@ -91,7 +91,7 @@ public class Login extends javax.swing.JFrame {
     }
 
     public void traspasar(Usuario user) {
-        /*Menu m = new Menu();
+        Menu m = new Menu();
         m.setVisible(true);
         m.pack();
         m.setLocationRelativeTo(null);
@@ -99,7 +99,7 @@ public class Login extends javax.swing.JFrame {
         m.setUser(user);
         m.llenar_zonas();
         m.llenar_Capacitaciones();
-        this.dispose();*/
+        this.dispose();
     }
 
     @SuppressWarnings("unchecked")
